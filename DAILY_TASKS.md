@@ -3,6 +3,16 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Validasi & Aktivasi Kredensial IDCloudHost S3 Object Storage**:
+  - Mengidentifikasi typo pada Access Key ID sebelumnya (`51C1MYLQVTHQPFWFIZM3` vs nilai asli `51C1MYLQVTHQPEWEIZM3` dari dashboard IDCloudHost).
+  - Melakukan uji coba koneksi langsung via AWS SDK S3:
+    - `ListBuckets` sukses mendeteksi bucket `velora`.
+    - `PutObject` sukses mengunggah file ke bucket `velora` dengan ETag valid.
+  - Memperbarui konfigurasi `.env` lokal dengan Access Key ID dan Secret Key yang 100% valid dan aktif.
+- [x] **Dukungan Multi-Photo per Versi Produk & Upload Resilient Dev Fallback (Commit `77413bb`)**:
+  - Menambahkan selector & uploader foto mandiri pada tiap varian versi produk di [`src/components/admin/product-editor/version-builder-card.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/product-editor/version-builder-card.tsx).
+  - Menambahkan fallback Data URL WebP otomatis di [`src/app/actions/upload.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/upload.ts) saat pengembangan lokal tanpa konfigurasi S3.
+  - Verifikasi: `npx tsc --noEmit` EXIT=0 dan `npm run lint` 0 errors.
 - [x] **Dekomposisi Total Monolitik Menjadi Sub-Komponen Modular (Commit `1c7e99c`)**:
   - Mengeliminasi file monolitik 800+ baris pada panel admin ([`settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx) dan [`product-editor.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/product-editor.tsx)) menjadi arsitektur sub-komponen kecil (50–160 baris per file).
   - **Folder `src/components/admin/settings/`**:
