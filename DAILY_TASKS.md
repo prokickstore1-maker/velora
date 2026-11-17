@@ -3,6 +3,18 @@
 ## 2026-11-17
 
 ### Target Selesai
+- [x] **Migrasi Skema & Seeding Database Coolify PostgreSQL 18**:
+  - Menghubungkan Drizzle ke database PostgreSQL produksi di Coolify (`157.10.253.46:5432`).
+  - Menjalankan migrasi skema `npx drizzle-kit push` yang berhasil membuat tabel: `products`, `product_versions`, `orders`, `order_items`, `customer_reviews`, dan `store_settings`.
+  - Menjalankan seeding komprehensif data awal toko: pengaturan toko (brand logo, WhatsApp, Maybank/DuitNow QR, threshold free shipping), seksi ulasan WhatsApp, 10 katalog produk K-pop terpopuler (NewJeans, aespa, IVE, SEVENTEEN, Stray Kids, LE SSERAFIM, TWICE, ENHYPEN, TXT, BLACKPINK) beserta varian, bundle, dan inventaris fisiknya.
+  - Mempersiapkan [`Dockerfile`](file:///d:/project%20web/myvelorastore/Dockerfile) dan [`.dockerignore`](file:///d:/project%20web/myvelorastore/.dockerignore) produksi mandiri Next.js 16.4 berbasis Node 22 Alpine untuk deployment otomatis Coolify.
+- [x] **Inisialisasi Git & Commit Milestone 1 & 2 (Commit `e28ca83`)**:
+  - Menginisialisasi repositori Git lokal dengan branch utama `main`.
+  - Mengonfigurasi remote origin ke repositori GitHub: `https://github.com/prokickstore1-maker/velora.git`.
+  - Menambahkan pengecualian `!.env.example` pada `.gitignore` agar template environment variables tetap terlacak tanpa membocorkan file credential lokal `.env`.
+  - Melakukan staging seluruh 125 file arsitektur proyek (storefront, 5-step checkout, admin panel, sistem stok anti-deadlock & anti-overselling, aset visual banner 2.5K, favicon bundle resmi, serta optimasi mobile 320px).
+  - Berhasil membuat commit bersih: `feat: complete milestone 1 & 2 storefront, 5-step checkout, admin panel, and mobile layout` (`e28ca83`).
+  - Menyerahkan perintah push ke pengguna sesuai instruksi.
 - [x] **Penyempurnaan Total Panel Admin di Layar Ekstra Kecil (320px / iPhone SE Standard)**:
   - **Pemberantasan Text & Button Overflow pada Kartu Produk Admin di [src/components/admin/products-manager.tsx](file:///d:/project%20web/myvelorastore/src/components/admin/products-manager.tsx)**:
     - Mengatasi tombol `Add Version` yang terpotong menjadi `sion` di batas kiri kartu akibat penggunaan `justify-end` pada flexbox yang melebihi lebar kontainer 256px.
