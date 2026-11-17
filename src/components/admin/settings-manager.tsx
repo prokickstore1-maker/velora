@@ -314,29 +314,47 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
 
       {/* Tabs */}
       <form onSubmit={handleSaveAll}>
-        <Tabs defaultValue="banner" className="space-y-6">
-          <TabsList className="bg-white border border-border p-1 rounded-xl h-auto flex flex-wrap gap-1">
-            <TabsTrigger value="banner" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+        <Tabs defaultValue="banner" className="w-full space-y-6">
+          <TabsList className="bg-white border border-border p-1.5 rounded-2xl h-auto flex flex-wrap gap-1.5 w-full justify-start shadow-xs">
+            <TabsTrigger
+              value="banner"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <ImageIcon className="w-3.5 h-3.5 mr-1.5" />
               Hero Banner
             </TabsTrigger>
-            <TabsTrigger value="shipping" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+            <TabsTrigger
+              value="shipping"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <Truck className="w-3.5 h-3.5 mr-1.5" />
               Shipping (Malaysia)
             </TabsTrigger>
-            <TabsTrigger value="payment" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+            <TabsTrigger
+              value="payment"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <CreditCard className="w-3.5 h-3.5 mr-1.5" />
               Payment & DuitNow
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+            <TabsTrigger
+              value="whatsapp"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
               WhatsApp &amp; Instagram
             </TabsTrigger>
-            <TabsTrigger value="faq" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+            <TabsTrigger
+              value="faq"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
               FAQ & Policies
             </TabsTrigger>
-            <TabsTrigger value="brand" className="text-xs font-bold uppercase data-[state=active]:bg-plum data-[state=active]:text-white rounded-lg">
+            <TabsTrigger
+              value="brand"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
               <Settings className="w-3.5 h-3.5 mr-1.5" />
               Brand Logo
             </TabsTrigger>
