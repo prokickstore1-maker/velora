@@ -62,7 +62,8 @@ $$\text{Harga Akhir (RM)} = \lfloor \text{Harga Sumber} \times \text{Kurs MYR} \
 
 ---
 
-## 6. Standar Output & Larangan
+## 6. Standar Output & Larangan (Status: HARGA FIX TOKO)
+- **Status Harga**: Seluruh harga yang dihitung dari rumus ini adalah **HARGA JUAL FIX RESMI MYVELORA STORE** (Fixed Store Retail Price). Tidak boleh diubah, dimarkup, atau dipotong ulang.
 - **Tampilkan hanya harga jual akhir dalam RM bulat**.
 - **Dilarang** menampilkan desimal (`.00`, `.50`).
 - **Dilarang** menampilkan teks "20% OFF", harga coret, atau harga sebelum diskon.
