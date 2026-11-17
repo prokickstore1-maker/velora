@@ -133,7 +133,7 @@ export function VersionBuilderCard({
                 />
               </div>
 
-              <div className="sm:col-span-3 space-y-1">
+              <div className="sm:col-span-2 space-y-1">
                 <Label className="text-[11px] font-bold uppercase text-plum">SKU Code *</Label>
                 <Input
                   required
@@ -144,7 +144,7 @@ export function VersionBuilderCard({
                 />
               </div>
 
-              <div className="sm:col-span-3 space-y-1">
+              <div className="sm:col-span-2 space-y-1">
                 <Label className="text-[11px] font-bold uppercase text-plum">Price (RM) *</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-xs font-bold text-plum-muted">RM</span>
@@ -158,6 +158,25 @@ export function VersionBuilderCard({
                     className="h-10 pl-10 text-xs font-bold"
                   />
                 </div>
+              </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <Label className="text-[11px] font-bold uppercase text-plum">Disc (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="99"
+                  placeholder="0"
+                  value={ver.discountPercent ?? ""}
+                  onChange={(e) =>
+                    onUpdateDraftVersion(
+                      idx,
+                      "discountPercent",
+                      e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0
+                    )
+                  }
+                  className="h-10 text-xs font-bold text-center"
+                />
               </div>
 
               <div className="sm:col-span-2 space-y-1">

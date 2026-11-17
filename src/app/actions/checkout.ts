@@ -5,6 +5,7 @@ import { db, hasDatabaseUrl, getOrCreateStoreSettings } from "@/db";
 import { orders, orderItems, productVersions, products } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
+import { calculateEffectivePrice } from "@/lib/promo";
 
 const checkoutSchema = z.object({
   customerName: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -127,6 +128,7 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
         .select({
           id: products.id,
           name: products.name,
+          category: products.category,
           isPreOrder: products.isPreOrder,
           preOrderDeadline: products.preOrderDeadline,
           preOrderQuotaMode: products.preOrderQuotaMode,
@@ -183,7 +185,13 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
           physicalDemandMap.set(ver.id, (physicalDemandMap.get(ver.id) || 0) + req.quantity);
         }
 
-        const unitPrice = parseFloat(ver.priceRm) || 0;
+        const promo = calculateEffectivePrice(
+          ver.priceRm,
+          parentProduct?.category || "Album",
+          settings,
+          ver.discountPercent
+        );
+        const unitPrice = promo.hasDiscount ? promo.discountedPrice : (parseFloat(ver.priceRm) || 0);
         const lineTotal = unitPrice * req.quantity;
         subtotal += lineTotal;
 
@@ -192,7 +200,7 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
           productVersionId: ver.id,
           productNameSnapshot: parentProduct?.name || "K-Pop Merchandise",
           versionNameSnapshot: ver.versionName,
-          unitPriceRm: ver.priceRm,
+          unitPriceRm: unitPrice.toFixed(2),
           quantity: req.quantity,
           lineTotalRm: lineTotal.toFixed(2),
         });

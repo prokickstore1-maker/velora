@@ -53,7 +53,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 md:py-10">
-        <ProductDetailClient product={product} />
+        <ProductDetailClient product={product} settings={settings} />
       </main>
 
       <CustomerReviewsSection reviews={reviews} />

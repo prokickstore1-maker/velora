@@ -25,6 +25,7 @@ const productVersionInputSchema = z.object({
   isBundle: z.boolean().optional().default(false),
   bundleMode: z.enum(["standalone", "linked"]).optional().default("standalone"),
   linkedVersionIds: z.string().trim().optional().nullable(),
+  discountPercent: z.number().int().min(0).max(99).optional().default(0),
   isActive: z.boolean().optional().default(true),
 });
 
@@ -56,6 +57,7 @@ const versionSchema = z.object({
   isBundle: z.boolean().optional().default(false),
   bundleMode: z.enum(["standalone", "linked"]).optional().default("standalone"),
   linkedVersionIds: z.string().trim().optional().nullable(),
+  discountPercent: z.number().int().min(0).max(99).optional().default(0),
   isActive: z.boolean().optional().default(true),
 });
 
@@ -197,6 +199,7 @@ export async function upsertProductAction(rawData: z.input<typeof productSchema>
                 isBundle: v.isBundle ?? false,
                 bundleMode: v.bundleMode ?? "standalone",
                 linkedVersionIds: v.linkedVersionIds || null,
+                discountPercent: v.discountPercent ?? 0,
                 isActive: v.isActive !== false,
                 sortOrder: idx + 1,
                 updatedAt: new Date(),
@@ -215,6 +218,7 @@ export async function upsertProductAction(rawData: z.input<typeof productSchema>
               isBundle: v.isBundle ?? false,
               bundleMode: v.bundleMode ?? "standalone",
               linkedVersionIds: v.linkedVersionIds || null,
+              discountPercent: v.discountPercent ?? 0,
               isActive: v.isActive !== false,
               sortOrder: idx + 1,
             });

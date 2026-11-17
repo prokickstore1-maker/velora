@@ -21,6 +21,7 @@ import {
   Save,
   Loader2,
   ShieldAlert,
+  Tag,
 } from "lucide-react";
 
 import { SettingsManagerProps } from "./settings/types";
@@ -30,6 +31,7 @@ import { PaymentTab } from "./settings/payment-tab";
 import { ContactBotTab } from "./settings/contact-bot-tab";
 import { FaqPolicyTab } from "./settings/faq-policy-tab";
 import { BrandLogoTab } from "./settings/brand-logo-tab";
+import { PromoTab } from "./settings/promo-tab";
 
 export function SettingsManager({ initialSettings }: SettingsManagerProps) {
   const [isSaving, setIsSaving] = useState(false);
@@ -74,6 +76,11 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
   const [faqItems, setFaqItems] = useState<FaqItem[]>(initialSettings?.faqItems || []);
   const [returnPolicyEnabled, setReturnPolicyEnabled] = useState(Boolean(initialSettings?.returnPolicyEnabled));
   const [returnPolicyText, setReturnPolicyText] = useState(initialSettings?.returnPolicyText || "");
+
+  const [promoDiscountEnabled, setPromoDiscountEnabled] = useState(Boolean(initialSettings?.promoDiscountEnabled));
+  const [promoDiscountPercent, setPromoDiscountPercent] = useState(initialSettings?.promoDiscountPercent || 0);
+  const [promoDiscountScope, setPromoDiscountScope] = useState(initialSettings?.promoDiscountScope || "all");
+  const [promoDiscountBadge, setPromoDiscountBadge] = useState(initialSettings?.promoDiscountBadge || "SALE");
 
   // FAQ handlers
   const handleAddFaqItem = () => {
@@ -213,6 +220,10 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
         faqItems,
         returnPolicyEnabled,
         returnPolicyText: returnPolicyText.trim() || null,
+        promoDiscountEnabled,
+        promoDiscountPercent,
+        promoDiscountScope,
+        promoDiscountBadge: promoDiscountBadge.trim() || "SALE",
       });
 
       if (!res.success) {
@@ -305,6 +316,13 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
             >
               <Settings className="w-3.5 h-3.5 mr-1.5" />
               Brand Logo
+            </TabsTrigger>
+            <TabsTrigger
+              value="promo"
+              className="text-xs font-bold uppercase data-active:bg-plum data-active:text-white data-[state=active]:bg-plum data-[state=active]:text-white rounded-xl px-4 py-2.5 transition-colors cursor-pointer"
+            >
+              <Tag className="w-3.5 h-3.5 mr-1.5" />
+              Promo &amp; Sale
             </TabsTrigger>
           </TabsList>
 
@@ -399,6 +417,19 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
               isUploadingLogo={isUploadingLogo}
               logoFileInputRef={logoFileInputRef}
               onLogoUpload={handleLogoUpload}
+            />
+          </TabsContent>
+
+          <TabsContent value="promo">
+            <PromoTab
+              promoDiscountEnabled={promoDiscountEnabled}
+              setPromoDiscountEnabled={setPromoDiscountEnabled}
+              promoDiscountPercent={promoDiscountPercent}
+              setPromoDiscountPercent={setPromoDiscountPercent}
+              promoDiscountScope={promoDiscountScope}
+              setPromoDiscountScope={setPromoDiscountScope}
+              promoDiscountBadge={promoDiscountBadge}
+              setPromoDiscountBadge={setPromoDiscountBadge}
             />
           </TabsContent>
         </Tabs>

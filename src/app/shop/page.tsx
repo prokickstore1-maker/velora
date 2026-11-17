@@ -89,6 +89,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           initialProducts={products}
           categories={categories}
           initialCategory={initialCategory}
+          settings={settings}
         />
       </main>
 

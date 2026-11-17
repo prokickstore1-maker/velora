@@ -45,6 +45,12 @@ const settingsSchema = z.object({
   faqItems: z.array(faqItemSchema).default([]),
   returnPolicyEnabled: z.boolean().default(false),
   returnPolicyText: z.string().trim().optional().nullable(),
+
+  // Promo Discount Campaign
+  promoDiscountEnabled: z.boolean().default(false),
+  promoDiscountPercent: z.number().int().min(0).max(99).default(0),
+  promoDiscountScope: z.string().trim().default("all"),
+  promoDiscountBadge: z.string().trim().default("SALE"),
 });
 
 export async function getBrandAssetPresignedUrlAction(

@@ -557,6 +557,10 @@ export const MOCK_STORE_SETTINGS: {
   faqItems: Array<{ id: string; question: string; answer: string }>;
   returnPolicyEnabled: boolean;
   returnPolicyText: string | null;
+  promoDiscountEnabled: boolean;
+  promoDiscountPercent: number;
+  promoDiscountScope: string;
+  promoDiscountBadge: string;
   updatedAt: Date;
 } = {
   id: 1,
@@ -620,5 +624,9 @@ export const MOCK_STORE_SETTINGS: {
   ],
   returnPolicyEnabled: false,
   returnPolicyText: null,
+  promoDiscountEnabled: false,
+  promoDiscountPercent: 0,
+  promoDiscountScope: "all",
+  promoDiscountBadge: "SALE",
   updatedAt: new Date(),
 };

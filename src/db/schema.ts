@@ -79,6 +79,7 @@ export const productVersions = pgTable(
     isBundle: boolean("is_bundle").notNull().default(false),
     bundleMode: text("bundle_mode").notNull().default("standalone"), // "standalone" | "linked"
     linkedVersionIds: text("linked_version_ids"), // optional JSON array string e.g. "[101, 102]"
+    discountPercent: integer("discount_percent").default(0), // optional per-version discount override
     isActive: boolean("is_active").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -208,6 +209,12 @@ export const storeSettings = pgTable("store_settings", {
   faqItems: jsonb("faq_items").$type<FaqItem[]>().notNull().default([]),
   returnPolicyEnabled: boolean("return_policy_enabled").notNull().default(false),
   returnPolicyText: text("return_policy_text"),
+
+  // Store Promo & Flash Sale Campaign
+  promoDiscountEnabled: boolean("promo_discount_enabled").notNull().default(false),
+  promoDiscountPercent: integer("promo_discount_percent").notNull().default(0),
+  promoDiscountScope: text("promo_discount_scope").notNull().default("all"), // "all" | category e.g. "Lightstick"
+  promoDiscountBadge: text("promo_discount_badge").notNull().default("SALE"),
 
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

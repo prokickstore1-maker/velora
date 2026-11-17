@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Product, ProductVersion } from "@/db/schema";
+import type { Product, ProductVersion, StoreSettings } from "@/db/schema";
 import { useCart } from "@/context/cart-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingBag, Plus, Minus, ArrowLeft, Heart } from "lucide-react";
 import { formatPreOrderDeadline, isDeadlinePassed } from "@/lib/date";
+import { calculateEffectivePrice } from "@/lib/promo";
 
 interface ProductWithVersions extends Product {
   versions: ProductVersion[];
@@ -17,9 +18,10 @@ interface ProductWithVersions extends Product {
 
 interface ProductDetailClientProps {
   product: ProductWithVersions;
+  settings?: StoreSettings | null;
 }
 
-export function ProductDetailClient({ product }: ProductDetailClientProps) {
+export function ProductDetailClient({ product, settings }: ProductDetailClientProps) {
   const { addItem } = useCart();
 
   const deadlinePassed = Boolean(
@@ -98,8 +100,21 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     setQuantity(1);
   };
 
+  const activePromo = selectedVersion
+    ? calculateEffectivePrice(
+        selectedVersion.priceRm,
+        product.category,
+        settings,
+        selectedVersion.discountPercent
+      )
+    : { hasDiscount: false, originalPrice: 0, discountedPrice: 0, discountPercent: 0, badgeText: "" };
+
   const handleAddToCart = () => {
     if (!selectedVersion || isPurchaseBlocked) return;
+
+    const unitPrice = activePromo.hasDiscount
+      ? activePromo.discountedPrice.toFixed(2)
+      : selectedVersion.priceRm;
 
     addItem(
       {
@@ -108,7 +123,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         productName: product.name,
         versionId: selectedVersion.id,
         versionName: selectedVersion.versionName,
-        priceRm: selectedVersion.priceRm,
+        priceRm: unitPrice,
         imageUrl: activeImage,
         maxStock: maxStock,
         sku: selectedVersion.sku,
@@ -220,14 +235,26 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
           </div>
 
-          {/* 4. Clean Price Display */}
+          {/* 4. Clean Price Display with Promo Support */}
           <div className="space-y-0.5 pt-1">
             <span className="text-[10px] sm:text-xs font-semibold text-plum-muted uppercase tracking-wider block">
               PRICE
             </span>
-            <p className="font-heading font-extrabold text-2xl sm:text-3xl text-plum whitespace-nowrap">
-              RM {selectedVersion ? parseFloat(selectedVersion.priceRm).toFixed(2) : "0.00"}
-            </p>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <p className="font-heading font-extrabold text-2xl sm:text-3xl text-plum whitespace-nowrap">
+                RM {selectedVersion ? (activePromo.hasDiscount ? activePromo.discountedPrice.toFixed(2) : parseFloat(selectedVersion.priceRm).toFixed(2)) : "0.00"}
+              </p>
+              {activePromo.hasDiscount && (
+                <span className="text-base sm:text-lg font-semibold line-through text-plum-muted">
+                  RM {activePromo.originalPrice.toFixed(2)}
+                </span>
+              )}
+              {activePromo.hasDiscount && (
+                <span className="bg-pink text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+                  {activePromo.badgeText}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 5. Smart Version Selector (Only shown when product has > 1 version) */}

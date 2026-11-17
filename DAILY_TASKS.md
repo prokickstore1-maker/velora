@@ -3,6 +3,17 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Implementasi Fitur Promo & Flash Sale Campaign (Global Store & Per-Version Override)**:
+  - **Skema Database**: Menambahkan kolom `promo_discount_enabled`, `promo_discount_percent`, `promo_discount_scope`, `promo_discount_badge` pada tabel `store_settings`, serta `discount_percent` pada tabel `product_versions`.
+  - **Migrasi Non-Destruktif**: Menjalankan migrasi aman `ALTER TABLE IF NOT EXISTS` langsung ke database PostgreSQL produksi.
+  - **Engine Kalkulasi Promo (`src/lib/promo.ts`)**: Menghitung harga diskon otomatis dengan pembulatan ke bawah (FLOOR, whole RM integer) sesuai paten *Myvelora Pricing Rules*.
+  - **Panel Admin Settings (`PromoTab`)**: Menyediakan tab baru *"Promo & Sale"* di `/admin/settings` lengkap dengan master switch, preset tombol persen (`5%`, `10%`, `15%`, `20%`, `25%`, `50%`), filter cakupan kategori (*Storewide* atau per-kategori seperti *Lightstick Only*), custom promo badge, dan *Live Customer Preview*.
+  - **Editor Varian Produk (`version-builder-card.tsx`)**: Menambahkan kolom input diskon spesifik per versi jika admin ingin memberi diskon berbeda pada varian tertentu.
+  - **Tampilan Storefront**:
+    - Kartu katalog (`product-card.tsx`): Menampilkan badge promo pink animasi, harga normal dicoret (misal: ~~RM 302.00~~), dan harga diskon aktif (misal: **RM 271.00**).
+    - Halaman detail produk (`product-detail-client.tsx`): Menampilkan harga coret, badge promo, dan menambahkan ke keranjang dengan harga diskon yang akurat.
+    - Alur Checkout (`checkout.ts`): Menghitung ulang subtotal di server menggunakan harga diskon promo yang aktif.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0) dan `npm run lint` 0 errors, 0 warnings.
 - [x] **Perbaikan Hapus Placeholder Customer Reviews**:
   - Mengidentifikasi bug di mana jika tabel database `customer_reviews` kosong, sistem secara paksa memuat data tiruan `MOCK_REVIEWS` (`if (allReviews.length === 0) allReviews = MOCK_REVIEWS`). Akibatnya placeholder WhatsApp review muncul kembali setiap kali halaman direfresh dan tidak bisa dihapus permanen.
   - Memperbaiki [`src/app/admin/(dashboard)/reviews/page.tsx`](file:///d:/project%20web/myvelorastore/src/app/admin/(dashboard)/reviews/page.tsx) dan [`src/lib/queries.ts`](file:///d:/project%20web/myvelorastore/src/lib/queries.ts) agar membaca murni data riil dari database.

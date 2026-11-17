@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Product, ProductVersion } from "@/db/schema";
+import { Product, ProductVersion, StoreSettings } from "@/db/schema";
 import { ProductCard } from "./product-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,14 @@ interface CatalogViewProps {
   initialProducts: ProductWithVersions[];
   categories: string[];
   initialCategory?: string;
+  settings?: StoreSettings | null;
 }
 
 export function CatalogView({
   initialProducts,
   categories,
   initialCategory = "All",
+  settings,
 }: CatalogViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -195,7 +197,7 @@ export function CatalogView({
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} settings={settings} />
           ))}
         </div>
       )}

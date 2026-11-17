@@ -96,7 +96,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {preOrderItems.map((product, idx) => (
-                <ProductCard key={product.id} product={product} priority={idx < 2} />
+                <ProductCard key={product.id} product={product} settings={settings} priority={idx < 2} />
               ))}
             </div>
             <div className="text-center mt-6">
@@ -120,7 +120,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {newArrivals.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} settings={settings} />
               ))}
             </div>
             <div className="text-center mt-6">
@@ -144,7 +144,7 @@ export default async function HomePage() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {bestSellers.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} settings={settings} />
               ))}
             </div>
             <div className="text-center mt-6">

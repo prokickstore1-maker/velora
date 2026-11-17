@@ -56,13 +56,14 @@ export function ProductEditor({ product }: ProductEditorProps) {
         sku: v.sku,
         priceRm: v.priceRm,
         stock: v.stock,
+        discountPercent: v.discountPercent || 0,
         imageUrl: v.imageUrl || undefined,
         isBundle: false,
         bundleMode: "standalone",
       }))
     : [
-        { versionName: "Ver. A", sku: "MV-VA", priceRm: "90.00", stock: 10, isBundle: false, bundleMode: "standalone" },
-        { versionName: "Ver. B", sku: "MV-VB", priceRm: "90.00", stock: 10, isBundle: false, bundleMode: "standalone" },
+        { versionName: "Ver. A", sku: "MV-VA", priceRm: "90.00", stock: 10, discountPercent: 0, isBundle: false, bundleMode: "standalone" },
+        { versionName: "Ver. B", sku: "MV-VB", priceRm: "90.00", stock: 10, discountPercent: 0, isBundle: false, bundleMode: "standalone" },
       ];
 
   const [draftVersions, setDraftVersions] = useState<DraftVersionItem[]>(initialDraftVersions);
@@ -273,6 +274,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
           sku: v.sku.trim(),
           priceRm: v.priceRm.trim(),
           stock: Number(v.stock) || 0,
+          discountPercent: Number(v.discountPercent) || 0,
           imageUrl: v.imageUrl?.trim() || undefined,
           isBundle: Boolean(v.isBundle),
           bundleMode: v.bundleMode || "standalone",

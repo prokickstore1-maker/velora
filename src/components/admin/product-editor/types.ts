@@ -10,6 +10,7 @@ export interface DraftVersionItem {
   sku: string;
   priceRm: string;
   stock: number;
+  discountPercent?: number;
   imageUrl?: string;
   isBundle?: boolean;
   bundleMode?: "standalone" | "linked";
