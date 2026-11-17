@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db, hasDatabaseUrl, getOrCreateStoreSettings } from "@/db";
 import { orders, orderItems, productVersions, products } from "@/db/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
 
 const checkoutSchema = z.object({
@@ -267,24 +267,9 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
         });
       }
 
-      // 10. Deduct physical stock accurately according to physicalDemandMap
-      for (const [verId, qtyToDeduct] of physicalDemandMap.entries()) {
-        await tx
-          .update(productVersions)
-          .set({ stock: sql`GREATEST(0, ${productVersions.stock} - ${qtyToDeduct})` })
-          .where(eq(productVersions.id, verId));
-      }
-
-      // Also decrement bundle counters if any linked bundles were purchased
-      for (const item of orderItemsToInsert) {
-        const ver = versionMap.get(item.productVersionId);
-        if (ver?.isBundle && ver.bundleMode === "linked") {
-          await tx
-            .update(productVersions)
-            .set({ stock: sql`GREATEST(0, ${productVersions.stock} - ${item.quantity})` })
-            .where(eq(productVersions.id, item.productVersionId));
-        }
-      }
+      // 10. Stock Deduction Policy:
+      // Per Myvelora Store business rules, stock is NOT deducted on initial checkout.
+      // Stock deduction is strictly deferred until the Admin verifies payment in Admin Orders (/admin/orders).
 
       return {
         orderCode: newOrder.orderCode,

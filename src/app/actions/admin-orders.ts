@@ -39,15 +39,66 @@ export async function updateOrderStatusAction(rawData: z.infer<typeof updateStat
       return { success: false, error: "Order not found." };
     }
 
-    // ACID Transaction for Status Change & Auto-Restock on Cancellation
+    // ACID Transaction for Status Change & Verification Stock Deduction
     await db.transaction(async (tx) => {
       const updateData: Partial<typeof orders.$inferInsert> = {
         status,
         updatedAt: new Date(),
       };
 
+      // 1. If verifying order for the first time: deduct physical stock!
       if (status === "verified" && !order.verifiedAt) {
         updateData.verifiedAt = new Date();
+
+        for (const item of order.items) {
+          if (item.productVersionId) {
+            const [version] = await tx
+              .select({
+                id: productVersions.id,
+                isBundle: productVersions.isBundle,
+                bundleMode: productVersions.bundleMode,
+                linkedVersionIds: productVersions.linkedVersionIds,
+                productId: productVersions.productId,
+              })
+              .from(productVersions)
+              .where(eq(productVersions.id, item.productVersionId));
+
+            if (version?.isBundle && version.bundleMode === "linked") {
+              const compIds: number[] = version.linkedVersionIds
+                ? JSON.parse(version.linkedVersionIds)
+                : [];
+
+              if (compIds.length > 0) {
+                await tx
+                  .update(productVersions)
+                  .set({
+                    stock: sql`GREATEST(0, ${productVersions.stock} - ${item.quantity})`,
+                  })
+                  .where(inArray(productVersions.id, compIds));
+              } else {
+                await tx
+                  .update(productVersions)
+                  .set({
+                    stock: sql`GREATEST(0, ${productVersions.stock} - ${item.quantity})`,
+                  })
+                  .where(
+                    and(
+                      eq(productVersions.productId, version.productId),
+                      eq(productVersions.isBundle, false)
+                    )
+                  );
+              }
+            }
+
+            // Deduct stock counter of the version itself
+            await tx
+              .update(productVersions)
+              .set({
+                stock: sql`GREATEST(0, ${productVersions.stock} - ${item.quantity})`,
+              })
+              .where(eq(productVersions.id, item.productVersionId));
+          }
+        }
       }
 
       if (status === "shipped") {
@@ -56,8 +107,8 @@ export async function updateOrderStatusAction(rawData: z.infer<typeof updateStat
         if (trackingNumber) updateData.trackingNumber = trackingNumber;
       }
 
-      // If cancelling and stock has not been restored yet: restore stock atomically!
-      if (status === "cancelled" && !order.stockRestoredAt) {
+      // 2. If cancelling and stock was previously deducted (order was verified): restore stock!
+      if (status === "cancelled" && order.verifiedAt && !order.stockRestoredAt) {
         for (const item of order.items) {
           if (item.productVersionId) {
             // Fetch version metadata to detect if this was a linked bundle

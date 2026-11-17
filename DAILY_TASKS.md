@@ -3,6 +3,12 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Penerapan Aturan Bisnis Stok: Stok Dikunci & Hanya Berkurang Saat Diverifikasi Admin**:
+  - Mengubah logika pengurangan stok di [`src/app/actions/checkout.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/checkout.ts): Checkout pelanggan (`pending_payment`) **tidak lagi memotong stok fisik**. Stok tetap utuh selama pesanan belum diverifikasi admin.
+  - Memindahkan logika pemotongan stok ke [`src/app/actions/admin-orders.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/admin-orders.ts): Stok fisik **hanya dipotong saat Admin mengubah status pesanan menjadi `verified`**.
+  - Mengatur mekanisme pembatalan (*cancellation*): Jika pesanan dibatalkan sebelum verifikasi, stok tidak terpengaruh; jika dibatalkan setelah diverifikasi, stok dipulihkan secara otomatis dan aman (idempoten via `stockRestoredAt`).
+  - Mengubah stok awal produk ENHYPEN Light Stick di database dari 25 menjadi **10 unit**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0) dan `npm run lint` 0 errors, 0 warnings.
 - [x] **Tes Upload Produk Nyata dari Web Eksternal (KSpace Project)**:
   - Berhasil mengekstrak data dari `https://www.kspaceproject.com/products/enhypen-official-light-stick`.
   - Mengunggah foto resmi produk resolusi tinggi ke IDCloudHost S3 bucket `velora`: `https://is3.cloudhost.id/velora/products/enhypen-official-light-stick-ver-2-1794941310329.png`.
