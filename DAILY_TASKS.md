@@ -3,6 +3,15 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Upload Produk Resmi: TREASURE - Official Light Stick**:
+  - Sumber: `https://www.kspaceproject.com/products/treasure-official-light-stick`
+  - Mata Uang & Harga Sumber: `1.519 Kč` (CZK)
+  - Kurs Konversi CZK → MYR: `0.185028` → `RM 281.05`
+  - Potongan Wajib 20%: `RM 281.05 × 0.80 = RM 224.84`
+  - Pembulatan ke bawah (FLOOR): **`RM 224`**
+  - Stok: **10 unit**
+  - Foto resolusi tinggi diunggah ke IDCloudHost S3: `https://is3.cloudhost.id/velora/products/treasure-official-light-stick-1794944004952.jpg` (HTTP 200 OK).
+  - Berhasil tersimpan di PostgreSQL (Product ID: 12, Version ID: 30) dengan status Published & New Arrival.
 - [x] **Implementasi Fitur Promo & Flash Sale Campaign (Global Store & Per-Version Override)**:
   - **Skema Database**: Menambahkan kolom `promo_discount_enabled`, `promo_discount_percent`, `promo_discount_scope`, `promo_discount_badge` pada tabel `store_settings`, serta `discount_percent` pada tabel `product_versions`.
   - **Migrasi Non-Destruktif**: Menjalankan migrasi aman `ALTER TABLE IF NOT EXISTS` langsung ke database PostgreSQL produksi.
