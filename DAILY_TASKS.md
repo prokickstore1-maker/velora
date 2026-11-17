@@ -3,6 +3,25 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Dekomposisi Total Monolitik Menjadi Sub-Komponen Modular (Commit `1c7e99c`)**:
+  - Mengeliminasi file monolitik 800+ baris pada panel admin ([`settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx) dan [`product-editor.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/product-editor.tsx)) menjadi arsitektur sub-komponen kecil (50–160 baris per file).
+  - **Folder `src/components/admin/settings/`**:
+    - `hero-banner-tab.tsx` (164 baris) — Pratinjau banner 16:9 & input headline
+    - `shipping-tab.tsx` (60 baris) — Tarif flat RM & threshold free shipping
+    - `payment-tab.tsx` (168 baris) — Rekening bank & upload barcode DuitNow QR
+    - `contact-bot-tab.tsx` (112 baris) — WhatsApp admin & token Telegram bot
+    - `faq-policy-tab.tsx` (110 baris) — FAQ dinamis & teks kebijakan retur
+    - `brand-logo-tab.tsx` (88 baris) — Upload logo master SVG/PNG
+    - `settings-manager.tsx` kini hanya berupa orchestrator bersih berorientasi penuh
+  - **Folder `src/components/admin/product-editor/`**:
+    - `product-info-card.tsx` (120 baris) — Nama, artis, kategori, auto-slug, deskripsi
+    - `version-builder-card.tsx` (144 baris) — Varian, input harga RM, SKU, stok fisik
+    - `bundle-option-card.tsx` (70 baris) — Full set bundle & dynamic linked inventory
+    - `preorder-card.tsx` (84 baris) — Switch PO, deadline kalender, kuota open/finite
+    - `photo-uploader-card.tsx` (80 baris) — Pratinjau 1:1 square & upload WebP S3
+    - `visibility-card.tsx` (51 baris) — Switch Published, New Arrival, Best Seller
+    - `summary-card.tsx` (52 baris) — Ringkasan total stok, rentang harga, tombol simpan
+  - Verifikasi: `npx tsc --noEmit` dan `npm run lint` 100% lolos (0 errors, 0 warnings).
 - [x] **Refactoring Modular Halaman Produk Admin (Commit `f0e2f46`)**:
   - Menghilangkan anti-pattern monolitik sebelumnya di mana form tambah/edit produk, builder versi multi-varian, kompresi gambar, dan pengaturan pre-order dipaksakan dalam satu file raksasa 1.400+ baris dan pop-up dialog melayang (`DialogContent max-h-[92vh]`).
   - Memecah arsitektur produk menjadi halaman mandiri (*dedicated pages*) sesuai standar Next.js 16:
