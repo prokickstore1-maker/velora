@@ -1,0 +1,176 @@
+/*
+ * Myvelora Store — Theme & Design Tokens Blueprint (Tailwind CSS v4 + Shadcn UI)
+ * Source: Myvelora_Brand_Identity_PRD.pdf (V1.0)
+ * Mode: Light Mode First
+ */
+
+@import "tailwindcss";
+
+@theme inline {
+  /* === Brand Core Palette === */
+  --color-plum: #47023B;
+  --color-plum-hover: #5E074F;
+  --color-plum-muted: #6E3B65;
+  --color-pink: #FA3890;
+  --color-blush: #F5D5E3;
+  --color-blush-soft: #FAF0F5;
+  --color-ivory: #FBF7F4;
+  --color-surface: #FFFFFF;
+
+  /* === Typography === */
+  --font-heading: var(--font-montserrat), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-poppins), "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  /* === Shadcn UI Semantic Mapping === */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* Ivory & Deep Plum Light-First Surfaces */
+  --background: #FBF7F4;
+  --foreground: #47023B;
+
+  --card: #FFFFFF;
+  --card-foreground: #47023B;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #47023B;
+
+  /* Primary CTA: Deep Plum + White Text */
+  --primary: #47023B;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary Surface: Soft Blush + Deep Plum Text */
+  --secondary: #F5D5E3;
+  --secondary-foreground: #47023B;
+
+  --muted: #F3EAEF;
+  --muted-foreground: #6E3B65;
+
+  /* Accent: Accent Pink (use with dark/deep plum surface or graphic elements only) */
+  --accent: #F5D5E3;
+  --accent-foreground: #47023B;
+
+  --destructive: #C81E4A;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #EAD6E0;
+  --input: #E2C6D5;
+  --ring: #47023B;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-pink/20 selection:text-plum;
+  }
+}
+
+/* === Myvelora Signature Editorial Utilities === */
+
+/* Bold Italic Uppercase Headline matching PDF "NEW ARRIVAL" / "HOW TO ORDER" */
+.mv-heading-italic {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* Restrained Geometric Corner Brackets (Accent Pink #FA3890) for Photo-First Frames */
+.mv-corner-frame {
+  position: relative;
+  background-color: #FFFFFF;
+  border: 1px solid #EAD6E0;
+}
+
+.mv-corner-frame::before,
+.mv-corner-frame::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mv-corner-frame::before {
+  top: -1px;
+  left: -1px;
+  border-top: 3px solid #FA3890;
+  border-left: 3px solid #FA3890;
+}
+
+.mv-corner-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 3px solid #FA3890;
+  border-bottom: 3px solid #FA3890;
+}
+
+/* === Mobile-First Ergonomics & In-App Browser Utilities === */
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Minimum 44x44px hit-box without active:scale shrinking */
+.mv-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Horizontal swipe snap container for mobile filter pills & 9:16 Customer Reviews */
+.mv-snap-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mv-snap-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.mv-snap-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
