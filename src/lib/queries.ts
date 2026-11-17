@@ -109,12 +109,9 @@ export const getPublicReviews = unstable_cache(
         orderBy: [customerReviews.sortOrder, desc(customerReviews.createdAt)],
       });
 
-      if (dbReviews && dbReviews.length > 0) {
-        return dbReviews;
-      }
-      return MOCK_REVIEWS;
+      return dbReviews || [];
     } catch {
-      return MOCK_REVIEWS;
+      return [];
     }
   },
   ["public_reviews_list"],

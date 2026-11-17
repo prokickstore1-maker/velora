@@ -3,6 +3,11 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Perbaikan Hapus Placeholder Customer Reviews**:
+  - Mengidentifikasi bug di mana jika tabel database `customer_reviews` kosong, sistem secara paksa memuat data tiruan `MOCK_REVIEWS` (`if (allReviews.length === 0) allReviews = MOCK_REVIEWS`). Akibatnya placeholder WhatsApp review muncul kembali setiap kali halaman direfresh dan tidak bisa dihapus permanen.
+  - Memperbaiki [`src/app/admin/(dashboard)/reviews/page.tsx`](file:///d:/project%20web/myvelorastore/src/app/admin/(dashboard)/reviews/page.tsx) dan [`src/lib/queries.ts`](file:///d:/project%20web/myvelorastore/src/lib/queries.ts) agar membaca murni data riil dari database.
+  - Jika tabel ulasan kosong, panel admin menampilkan *empty state* bersih dengan tombol "+ Add WhatsApp Review", dan storefront menyembunyikan section ulasan sampai admin mengunggah ulasan nyata.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0) dan `npm run lint` 0 errors.
 - [x] **Penerapan Aturan Bisnis Stok: Stok Dikunci & Hanya Berkurang Saat Diverifikasi Admin**:
   - Mengubah logika pengurangan stok di [`src/app/actions/checkout.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/checkout.ts): Checkout pelanggan (`pending_payment`) **tidak lagi memotong stok fisik**. Stok tetap utuh selama pesanan belum diverifikasi admin.
   - Memindahkan logika pemotongan stok ke [`src/app/actions/admin-orders.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/admin-orders.ts): Stok fisik **hanya dipotong saat Admin mengubah status pesanan menjadi `verified`**.

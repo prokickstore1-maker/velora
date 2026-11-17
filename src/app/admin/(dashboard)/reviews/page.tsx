@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import { db, hasDatabaseUrl } from "@/db";
 import { customerReviews } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { MOCK_REVIEWS } from "@/db/mock-data";
@@ -11,16 +11,17 @@ export const metadata = {
 export default async function AdminReviewsPage() {
   let allReviews: Array<typeof customerReviews.$inferSelect> = [];
 
+  if (!hasDatabaseUrl) {
+    return <ReviewsManager initialReviews={MOCK_REVIEWS} />;
+  }
+
   try {
     allReviews = await db.query.customerReviews.findMany({
       orderBy: [customerReviews.sortOrder, desc(customerReviews.createdAt)],
     });
-
-    if (allReviews.length === 0) {
-      allReviews = MOCK_REVIEWS;
-    }
-  } catch {
-    allReviews = MOCK_REVIEWS;
+  } catch (err) {
+    console.error("Failed to fetch customer reviews from DB:", err);
+    allReviews = [];
   }
 
   return <ReviewsManager initialReviews={allReviews} />;
