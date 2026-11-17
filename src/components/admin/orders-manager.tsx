@@ -145,10 +145,12 @@ export function OrdersManager({ initialOrders, initialSearchCode = "" }: OrdersM
 
   const openWhatsAppChat = (order: OrderWithItems) => {
     const cleanPhone = order.customerWhatsapp.replace(/\D/g, "");
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const trackingUrl = origin ? `${origin}/track-order` : "/track-order";
     let text = `Hello ${order.customerName}! This is Myvelora Store regarding your order ${order.orderCode}.`;
 
     if (order.status === "shipped" && order.trackingNumber) {
-      text = `Hello ${order.customerName}! Your Myvelora Store order ${order.orderCode} has been shipped via ${order.courierName || "Courier"}.\n\nTracking Number: ${order.trackingNumber}\n\nYou can track your parcel on our website: https://myvelora.com/track-order\n\nThank you!`;
+      text = `Hello ${order.customerName}! Your Myvelora Store order ${order.orderCode} has been shipped via ${order.courierName || "Courier"}.\n\nTracking Number: ${order.trackingNumber}\n\nYou can track your parcel on our website: ${trackingUrl}\n\nThank you!`;
     } else if (order.status === "verified" || order.status === "packing") {
       text = `Hello ${order.customerName}! Your payment for order ${order.orderCode} has been verified. We are currently packing your K-Pop merchandise with care!`;
     }
