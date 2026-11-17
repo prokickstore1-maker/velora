@@ -47,6 +47,7 @@
 ## 3. Langkah Selanjutnya (Estafet & Task Backlog)
 
 1. **Status Task Selesai**:
+   - [x] **Arsitektur Upload Gambar Anti-CORS IDCloudHost S3 (Commit `519cc56`)**: Menambahkan jalur upload server-side langsung ke S3 via Server Action Next.js sehingga aman 100% dari potensi error CORS browser pada bucket IDCloudHost Ceph S3, dengan kompresi Canvas WebP di sisi klien.
    - [x] **Migrasi Skema & Seeding Database Coolify PostgreSQL 18**: Struktur tabel toko (`products`, `product_versions`, `orders`, `order_items`, `customer_reviews`, `store_settings`) berhasil di-push via `drizzle-kit push`, data awal 10 katalog produk K-pop, pengaturan toko & FAQ tersimpan rapi, dan `Dockerfile` produksi Next.js 16 siap di-deploy di Coolify.
    - [x] **Inisialisasi Git & Commit Milestone 1 & 2 (Commit `e28ca83`)**: Repositori Git lokal diinisialisasi pada branch `main`, remote origin diarahkan ke `https://github.com/prokickstore1-maker/velora.git`, 125 file di-stage dan di-commit secara rapi dengan pengecualian `.env` lokal terjaga aman.
    - [x] **Penyempurnaan Total Panel Admin di Layar Ekstra Kecil (320px / iPhone SE Standard)**: Pembenahan kartu produk admin (`products-manager.tsx`) yang terpotong tombol `Add Version`-nya menjadi `sion`, penataan ulang tombol aksi `Edit Product` + `+ Version` + `Trash` menjadi pas di dalam kartu 256px, dan penambahan responsive collapsible sidebar admin (`admin-sidebar.tsx`).

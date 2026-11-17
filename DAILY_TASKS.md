@@ -3,6 +3,10 @@
 ## 2026-11-17
 
 ### Target Selesai
+- [x] **Arsitektur Upload Gambar Anti-CORS IDCloudHost S3 (Commit `519cc56`)**:
+  - Menghilangkan potensi error preflight browser CORS pada bucket baru IDCloudHost Object Storage dengan menerapkan jalur upload Server-Side via Server Action [`src/app/actions/upload.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/upload.ts) dan [`src/lib/s3.ts`](file:///d:/project%20web/myvelorastore/src/lib/s3.ts).
+  - Foto tetap dikompresi di browser via HTML5 Canvas (WebP ~100-200KB) sebelum dikirim, menjaga kecepatan upload di mobile.
+  - Mengintegrasikan fallback bertingkat (Server-Side Direct S3 -> Presigned PUT -> Local Data URL) pada halaman pembayaran bukti transfer ([`payment-client.tsx`](file:///d:/project%20web/myvelorastore/src/components/storefront/payment-client.tsx)), upload produk admin ([`products-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/products-manager.tsx)), banner toko ([`settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx)), dan ulasan WhatsApp ([`reviews-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/reviews-manager.tsx)).
 - [x] **Migrasi Skema & Seeding Database Coolify PostgreSQL 18**:
   - Menghubungkan Drizzle ke database PostgreSQL produksi di Coolify (`157.10.253.46:5432`).
   - Menjalankan migrasi skema `npx drizzle-kit push` yang berhasil membuat tabel: `products`, `product_versions`, `orders`, `order_items`, `customer_reviews`, dan `store_settings`.
