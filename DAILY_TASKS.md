@@ -3,6 +3,9 @@
 ## 2026-11-17
 
 ### Target Selesai
+- [x] **Filter Notifikasi Telegram Khusus Bukti Transfer (Commit `e4fd320`)**:
+  - Mengubah perilaku dispatcher notifikasi Telegram di [`src/lib/notifications.ts`](file:///d:/project%20web/myvelorastore/src/lib/notifications.ts) dan [`src/app/actions/checkout.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/checkout.ts) agar **hanya** mengirimkan notifikasi saat pembeli mengunggah bukti transfer (`payment_submitted`), menghilangkan notifikasi checkout awal yang belum dibayar.
+  - Format pesan Telegram menyajikan detail lengkap: Kode Order, Nama Pembeli (+WA), Tujuan Pengiriman, Rincian Barang, Total RM, dan tautan langsung untuk melihat foto bukti transfer.
 - [x] **Arsitektur Upload Gambar Anti-CORS IDCloudHost S3 (Commit `519cc56`)**:
   - Menghilangkan potensi error preflight browser CORS pada bucket baru IDCloudHost Object Storage dengan menerapkan jalur upload Server-Side via Server Action [`src/app/actions/upload.ts`](file:///d:/project%20web/myvelorastore/src/app/actions/upload.ts) dan [`src/lib/s3.ts`](file:///d:/project%20web/myvelorastore/src/lib/s3.ts).
   - Foto tetap dikompresi di browser via HTML5 Canvas (WebP ~100-200KB) sebelum dikirim, menjaga kecepatan upload di mobile.
