@@ -3,52 +3,23 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Product, ProductVersion } from "@/db/schema";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { upsertProductAction } from "@/app/actions/admin-products";
 import { uploadImageServerAction } from "@/app/actions/upload";
 import { compressImage } from "@/lib/image-compress";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Save,
-  Loader2,
-  Upload,
-  Plus,
-  Trash2,
-  Package,
-  Layers,
-  Sparkles,
-  Calendar,
-  CheckCircle2,
-} from "lucide-react";
-import { PRODUCT_CATEGORIES } from "@/lib/constants";
 
-interface ProductWithVersions extends Product {
-  versions: ProductVersion[];
-}
-
-interface DraftVersionItem {
-  id?: number;
-  versionName: string;
-  sku: string;
-  priceRm: string;
-  stock: number;
-  imageUrl?: string;
-  isBundle?: boolean;
-  bundleMode?: "standalone" | "linked";
-  linkedVersionIds?: string;
-}
+import { ProductEditorProps, DraftVersionItem } from "./product-editor/types";
+import { ProductInfoCard } from "./product-editor/product-info-card";
+import { VersionBuilderCard } from "./product-editor/version-builder-card";
+import { BundleOptionCard } from "./product-editor/bundle-option-card";
+import { PreOrderCard } from "./product-editor/preorder-card";
+import { PhotoUploaderCard } from "./product-editor/photo-uploader-card";
+import { VisibilityCard } from "./product-editor/visibility-card";
+import { SummaryCard } from "./product-editor/summary-card";
 
 const DEFAULT_VERSION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-
-interface ProductEditorProps {
-  product?: ProductWithVersions | null;
-}
 
 export function ProductEditor({ product }: ProductEditorProps) {
   const router = useRouter();
@@ -98,12 +69,7 @@ export function ProductEditor({ product }: ProductEditorProps) {
   const [versionCount, setVersionCount] = useState(initialDraftVersions.length || 2);
 
   // Bundle / Full Set state
-  const [includeFullSet, setIncludeFullSet] = useState(
-    isEditing
-      ? isLastBundle
-      : true
-  );
-
+  const [includeFullSet, setIncludeFullSet] = useState(isEditing ? isLastBundle : true);
   const [fullSetOption, setFullSetOption] = useState<DraftVersionItem>(
     isEditing && isLastBundle && lastVer
       ? {
@@ -169,7 +135,6 @@ export function ProductEditor({ product }: ProductEditorProps) {
     }
     setDraftVersions(newVers);
 
-    // Update Full Set name
     if (count >= 2) {
       setFullSetOption((prev) => ({
         ...prev,
@@ -360,14 +325,14 @@ export function ProductEditor({ product }: ProductEditorProps) {
             type="button"
             variant="outline"
             onClick={() => router.push("/admin/products")}
-            className="h-11 px-4 text-xs font-semibold border-border text-plum hover:bg-blush/30"
+            className="h-11 px-4 text-xs font-semibold border-border text-plum hover:bg-blush/30 cursor-pointer"
           >
             Cancel
           </Button>
           <Button
             type="submit"
             disabled={isSaving}
-            className="bg-plum hover:bg-plum-hover text-white text-xs font-semibold h-11 px-6 rounded-xl shadow-xs"
+            className="bg-plum hover:bg-plum-hover text-white text-xs font-semibold h-11 px-6 rounded-xl shadow-xs cursor-pointer"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
             {isEditing ? "Update Product" : "Save Product"}
@@ -377,489 +342,87 @@ export function ProductEditor({ product }: ProductEditorProps) {
 
       {/* Main Grid: Left Column (Fields) & Right Column (Photo & Visibility) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN (8 COLS) */}
+        {/* LEFT COLUMN: 8 Columns */}
         <div className="lg:col-span-8 space-y-6">
-          {/* CARD 1: Category & Basic Details */}
-          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-5">
-            <div className="flex items-center gap-2 pb-2 border-b border-border">
-              <Package className="w-4 h-4 text-pink" />
-              <h2 className="text-sm font-bold uppercase text-plum">1. Category & General Information</h2>
-            </div>
+          <ProductInfoCard
+            category={category}
+            setCategory={(cat) => {
+              setCategory(cat);
+              if (!isEditing && (cat === "Lightstick" || cat === "Photobook")) {
+                handleVersionCountChange(1, cat);
+              } else if (!isEditing && cat === "Album" && versionCount === 1) {
+                handleVersionCountChange(2, cat);
+              }
+            }}
+            name={name}
+            setName={setName}
+            groupArtist={groupArtist}
+            setGroupArtist={setGroupArtist}
+            slug={slug}
+            setSlug={setSlug}
+            description={description}
+            setDescription={setDescription}
+            onGenerateSlug={handleGenerateSlug}
+          />
 
-            {/* Category selection */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-plum">Product Category *</Label>
-              <div className="flex flex-wrap gap-2">
-                {PRODUCT_CATEGORIES.map((cat) => {
-                  const isSelected = category === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => {
-                        setCategory(cat);
-                        if (!isEditing && (cat === "Lightstick" || cat === "Photobook")) {
-                          handleVersionCountChange(1, cat);
-                        } else if (!isEditing && cat === "Album" && versionCount === 1) {
-                          handleVersionCountChange(2, cat);
-                        }
-                      }}
-                      className={`text-xs font-semibold px-4 py-2 rounded-xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-plum text-white border-plum shadow-xs"
-                          : "bg-white text-plum border-border hover:bg-blush/30"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="space-y-4">
+            <VersionBuilderCard
+              draftVersions={draftVersions}
+              versionCount={versionCount}
+              onVersionCountChange={handleVersionCountChange}
+              onUpdateDraftVersion={handleUpdateDraftVersion}
+              onAddCustomVersion={handleAddCustomVersion}
+              onRemoveDraftVersion={handleRemoveDraftVersion}
+            />
 
-            {/* Product Name & Group */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase text-plum">Product Title *</Label>
-                <Input
-                  required
-                  placeholder="e.g. 2nd EP 'Get Up'"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-11 rounded-xl text-xs font-semibold"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase text-plum">K-Pop Group / Artist *</Label>
-                <Input
-                  required
-                  placeholder="e.g. NewJeans, aespa, IVE"
-                  value={groupArtist}
-                  onChange={(e) => setGroupArtist(e.target.value)}
-                  className="h-11 rounded-xl text-xs font-semibold"
-                />
-              </div>
-            </div>
-
-            {/* URL Slug */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold uppercase text-plum">URL Slug *</Label>
-                <button
-                  type="button"
-                  onClick={handleGenerateSlug}
-                  className="text-[11px] font-semibold text-pink hover:underline"
-                >
-                  Generate from Title & Artist
-                </button>
-              </div>
-              <Input
-                required
-                placeholder="e.g. newjeans-2nd-ep-get-up"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="h-11 rounded-xl font-mono text-xs"
-              />
-              <p className="text-[11px] text-plum-muted">
-                URL path: <code>/products/{slug || "slug-here"}</code>
-              </p>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase text-plum">Description & Package Details</Label>
-              <Textarea
-                placeholder="Official sealed album packaging includes photobook, CD-R, lyric book, photocards, and sticker pack..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="min-h-24 text-xs resize-y rounded-xl"
-              />
-            </div>
-          </div>
-
-          {/* CARD 2: Multi-Version & Inventory Builder */}
-          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-5">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-pink" />
-                <h2 className="text-sm font-bold uppercase text-plum">2. Versions & Physical Inventory</h2>
-              </div>
-              <span className="text-xs font-bold text-plum bg-blush/40 px-2.5 py-1 rounded-full">
-                {draftVersions.length} {draftVersions.length === 1 ? "Version" : "Versions"}
-              </span>
-            </div>
-
-            {/* Quick Count Preset */}
-            <div className="p-3.5 rounded-xl bg-ivory border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-bold text-plum block">Number of Individual Versions:</span>
-                <span className="text-[11px] text-plum-muted">Choose quick preset or add versions individually.</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => handleVersionCountChange(num)}
-                    className={`w-9 h-9 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                      versionCount === num
-                        ? "bg-plum text-white shadow-xs"
-                        : "bg-white text-plum border border-border hover:bg-blush/30"
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Version List */}
-            <div className="space-y-3">
-              {draftVersions.map((ver, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl border border-border bg-white shadow-2xs space-y-3 hover:border-plum/40 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold uppercase text-plum flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-full bg-plum text-white text-[10px] flex items-center justify-center">
-                        {idx + 1}
-                      </span>
-                      Version #{idx + 1}
-                    </span>
-                    {draftVersions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDraftVersion(idx)}
-                        className="text-plum-muted hover:text-destructive p-1 rounded transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                    <div className="sm:col-span-4 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">Version Name *</Label>
-                      <Input
-                        required
-                        placeholder="e.g. Minji Ver. / Ver. A"
-                        value={ver.versionName}
-                        onChange={(e) => handleUpdateDraftVersion(idx, "versionName", e.target.value)}
-                        className="h-10 text-xs font-semibold"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">SKU Code *</Label>
-                      <Input
-                        required
-                        placeholder="MV-NJ-MJ"
-                        value={ver.sku}
-                        onChange={(e) => handleUpdateDraftVersion(idx, "sku", e.target.value)}
-                        className="h-10 font-mono text-xs"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">Price (RM) *</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-xs font-bold text-plum-muted">RM</span>
-                        <Input
-                          required
-                          type="number"
-                          step="0.01"
-                          placeholder="89.00"
-                          value={ver.priceRm}
-                          onChange={(e) => handleUpdateDraftVersion(idx, "priceRm", e.target.value)}
-                          className="h-10 pl-10 text-xs font-bold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-2 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">Stock *</Label>
-                      <Input
-                        required
-                        type="number"
-                        min="0"
-                        placeholder="10"
-                        value={ver.stock}
-                        onChange={(e) => handleUpdateDraftVersion(idx, "stock", parseInt(e.target.value, 10) || 0)}
-                        className="h-10 text-xs font-bold text-center"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddCustomVersion}
-                className="w-full h-10 text-xs font-semibold border-dashed border-plum/40 text-plum hover:bg-blush/20"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Add Another Version Option
-              </Button>
-            </div>
-
-            {/* FULL SET / BUNDLE OPTION */}
             {draftVersions.length >= 2 && (
-              <div className="p-4 rounded-xl border border-pink/30 bg-blush-soft space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeFullSet}
-                      onChange={(e) => setIncludeFullSet(e.target.checked)}
-                      className="w-4 h-4 rounded text-pink"
-                    />
-                    <span className="text-xs font-bold text-plum uppercase">
-                      Include Full Set / Bundle Option
-                    </span>
-                  </label>
-                  <span className="text-[10px] font-semibold text-pink uppercase tracking-wider">
-                    Linked Inventory
-                  </span>
-                </div>
-
-                {includeFullSet && (
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 items-end">
-                    <div className="sm:col-span-5 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">Bundle Name</Label>
-                      <Input
-                        value={fullSetOption.versionName}
-                        onChange={(e) => setFullSetOption((prev) => ({ ...prev, versionName: e.target.value }))}
-                        className="h-10 text-xs font-semibold bg-white"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-3 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">SKU</Label>
-                      <Input
-                        value={fullSetOption.sku}
-                        onChange={(e) => setFullSetOption((prev) => ({ ...prev, sku: e.target.value }))}
-                        className="h-10 font-mono text-xs bg-white"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-4 space-y-1">
-                      <Label className="text-[11px] font-bold uppercase text-plum">Bundle Price (RM)</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-xs font-bold text-plum-muted">RM</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={fullSetOption.priceRm}
-                          onChange={(e) => setFullSetOption((prev) => ({ ...prev, priceRm: e.target.value }))}
-                          className="h-10 pl-10 text-xs font-bold bg-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <BundleOptionCard
+                includeFullSet={includeFullSet}
+                setIncludeFullSet={setIncludeFullSet}
+                fullSetOption={fullSetOption}
+                setFullSetOption={setFullSetOption}
+              />
             )}
           </div>
 
-          {/* CARD 3: Pre-Order Configuration */}
-          <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-pink" />
-                <h2 className="text-sm font-bold uppercase text-plum">3. Pre-Order Configuration</h2>
-              </div>
-              <Switch checked={isPreOrder} onCheckedChange={setIsPreOrder} />
-            </div>
-
-            {isPreOrder ? (
-              <div className="space-y-4 pt-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase text-plum">Pre-Order Closing Deadline</Label>
-                    <Input
-                      type="date"
-                      value={preOrderDeadline}
-                      onChange={(e) => setPreOrderDeadline(e.target.value)}
-                      className="h-11 rounded-xl text-xs font-semibold"
-                    />
-                    <p className="text-[11px] text-plum-muted">
-                      Customers see &quot;PO Closes on [Date]&quot; badge on storefront.
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase text-plum">Quota Mode</Label>
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setPreOrderQuotaMode("finite")}
-                        className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                          preOrderQuotaMode === "finite"
-                            ? "bg-plum text-white border-plum shadow-xs font-semibold"
-                            : "bg-white text-plum border-border hover:bg-blush/30"
-                        }`}
-                      >
-                        <span className="block font-bold">Limited Quota</span>
-                        <span className="text-[10px] opacity-80 block">Stops when stock hits 0</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setPreOrderQuotaMode("open")}
-                        className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                          preOrderQuotaMode === "open"
-                            ? "bg-plum text-white border-plum shadow-xs font-semibold"
-                            : "bg-white text-plum border-border hover:bg-blush/30"
-                        }`}
-                      >
-                        <span className="block font-bold">Open PO</span>
-                        <span className="text-[10px] opacity-80 block">Unlimited orders until deadline</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-plum-muted">
-                This item is currently sold as <strong>Ready Stock</strong>. Turn on the switch above if this drop is an advance Pre-Order.
-              </p>
-            )}
-          </div>
+          <PreOrderCard
+            isPreOrder={isPreOrder}
+            setIsPreOrder={setIsPreOrder}
+            preOrderDeadline={preOrderDeadline}
+            setPreOrderDeadline={setPreOrderDeadline}
+            preOrderQuotaMode={preOrderQuotaMode}
+            setPreOrderQuotaMode={setPreOrderQuotaMode}
+          />
         </div>
 
-        {/* RIGHT COLUMN (4 COLS): Photo, Visibility, Summary */}
+        {/* RIGHT COLUMN: 4 Columns */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Main Photo Card */}
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-border">
-              <Upload className="w-4 h-4 text-pink" />
-              <h2 className="text-sm font-bold uppercase text-plum">Master Photo (1:1)</h2>
-            </div>
+          <PhotoUploaderCard
+            primaryImageUrl={primaryImageUrl}
+            setPrimaryImageUrl={setPrimaryImageUrl}
+            isUploadingImage={isUploadingImage}
+            onUploadClick={() => primaryImageInputRef.current?.click()}
+            fileInputRef={primaryImageInputRef}
+            onFileChange={handlePrimaryImageUpload}
+          />
 
-            {/* Live 1:1 Square Preview */}
-            <div className="relative aspect-square w-full rounded-2xl border border-border overflow-hidden bg-ivory flex items-center justify-center shadow-2xs">
-              {primaryImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={primaryImageUrl} alt="Product preview" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center p-4 space-y-1">
-                  <Package className="w-10 h-10 text-border mx-auto" />
-                  <span className="text-xs font-bold text-plum-muted block">No Photo Uploaded</span>
-                  <span className="text-[10px] text-plum-muted">1:1 Square Recommended</span>
-                </div>
-              )}
-            </div>
+          <VisibilityCard
+            isPublished={isPublished}
+            setIsPublished={setIsPublished}
+            isNewArrival={isNewArrival}
+            setIsNewArrival={setIsNewArrival}
+            isBestSeller={isBestSeller}
+            setIsBestSeller={setIsBestSeller}
+          />
 
-            {/* Upload Button from Device */}
-            <input
-              ref={primaryImageInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handlePrimaryImageUpload}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isUploadingImage}
-              onClick={() => primaryImageInputRef.current?.click()}
-              className="w-full h-11 text-xs font-semibold border-plum text-plum hover:bg-blush/30 rounded-xl"
-            >
-              {isUploadingImage ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-                  <span>Uploading to Storage...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-1.5" />
-                  <span>Upload Photo from Device</span>
-                </>
-              )}
-            </Button>
-
-            {/* Direct URL input fallback */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-bold uppercase text-plum">Or Direct Photo URL</Label>
-              <Input
-                placeholder="https://is3.cloudhost.id/velora/products/..."
-                value={primaryImageUrl}
-                onChange={(e) => setPrimaryImageUrl(e.target.value)}
-                className="h-9 font-mono text-[11px]"
-              />
-            </div>
-          </div>
-
-          {/* Visibility & Badges Card */}
-          <div className="bg-white p-5 rounded-2xl border border-border shadow-xs space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-border">
-              <Sparkles className="w-4 h-4 text-pink" />
-              <h2 className="text-sm font-bold uppercase text-plum">Visibility & Badges</h2>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-plum block">Published</span>
-                  <span className="text-[10px] text-plum-muted">Visible to storefront customers</span>
-                </div>
-                <Switch checked={isPublished} onCheckedChange={setIsPublished} />
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <div>
-                  <span className="text-xs font-bold text-plum block">New Arrival Badge</span>
-                  <span className="text-[10px] text-plum-muted">Featured in New Arrival section</span>
-                </div>
-                <Switch checked={isNewArrival} onCheckedChange={setIsNewArrival} />
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <div>
-                  <span className="text-xs font-bold text-plum block">Best Seller Badge</span>
-                  <span className="text-[10px] text-plum-muted">Featured in Best Seller section</span>
-                </div>
-                <Switch checked={isBestSeller} onCheckedChange={setIsBestSeller} />
-              </div>
-            </div>
-          </div>
-
-          {/* Summary & Sticky Save */}
-          <div className="bg-plum text-white p-5 rounded-2xl shadow-sm space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-white/20">
-              <CheckCircle2 className="w-4 h-4 text-blush" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-blush">Product Summary</h3>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-white/70">Total Versions:</span>
-                <span className="font-bold">{draftVersions.length + (includeFullSet ? 1 : 0)} items</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Total Ready Stock:</span>
-                <span className="font-bold">{totalStock} units</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Price Range:</span>
-                <span className="font-bold text-blush">
-                  RM {minPrice.toFixed(2)} {maxPrice > minPrice ? `– RM ${maxPrice.toFixed(2)}` : ""}
-                </span>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isSaving}
-              className="w-full bg-pink hover:bg-pink-hover text-white text-xs font-bold h-11 rounded-xl shadow-xs cursor-pointer"
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-              {isEditing ? "Update Product Now" : "Publish Product Now"}
-            </Button>
-          </div>
+          <SummaryCard
+            totalVersions={draftVersions.length + (includeFullSet ? 1 : 0)}
+            totalStock={totalStock}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            isSaving={isSaving}
+            isEditing={isEditing}
+          />
         </div>
       </div>
     </form>
