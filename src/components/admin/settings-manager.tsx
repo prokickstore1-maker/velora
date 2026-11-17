@@ -39,6 +39,12 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
+  const [isUploadingDuitnow, setIsUploadingDuitnow] = useState(false);
+  const duitnowFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
+
   // Form states
   const [brandLogoUrl, setBrandLogoUrl] = useState(initialSettings?.brandLogoUrl || "");
   const [heroBannerImageUrl, setHeroBannerImageUrl] = useState(
@@ -165,6 +171,67 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
       setIsUploadingBanner(false);
       if (bannerFileInputRef.current) {
         bannerFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleDuitnowQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingDuitnow(true);
+    try {
+      const compressed = await compressImage(file, {
+        maxWidth: 1000,
+        maxHeight: 1000,
+        quality: 0.9,
+        mimeType: "image/webp",
+      });
+
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", "brand");
+
+      const serverRes = await uploadImageServerAction(formData);
+      if (serverRes.success && serverRes.publicUrl) {
+        setDuitnowQrImageUrl(serverRes.publicUrl);
+        toast.success("DuitNow QR / QRIS image uploaded to storage!");
+      } else {
+        toast.error(serverRes.error || "Failed to upload QR image.");
+      }
+    } catch {
+      toast.error("Failed to process QR image.");
+    } finally {
+      setIsUploadingDuitnow(false);
+      if (duitnowFileInputRef.current) {
+        duitnowFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "brand");
+
+      const serverRes = await uploadImageServerAction(formData);
+      if (serverRes.success && serverRes.publicUrl) {
+        setBrandLogoUrl(serverRes.publicUrl);
+        toast.success("Brand logo uploaded to storage!");
+      } else {
+        toast.error(serverRes.error || "Failed to upload logo.");
+      }
+    } catch {
+      toast.error("Failed to process logo image.");
+    } finally {
+      setIsUploadingLogo(false);
+      if (logoFileInputRef.current) {
+        logoFileInputRef.current.value = "";
       }
     }
   };
@@ -507,15 +574,81 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase text-plum">DuitNow QR Image URL</Label>
-              <Input
-                type="url"
-                placeholder="https://..."
-                value={duitnowQrImageUrl}
-                onChange={(e) => setDuitnowQrImageUrl(e.target.value)}
-                className="h-11 rounded-xl font-mono text-xs"
-              />
+            {/* DuitNow QR / QRIS Upload + Preview */}
+            <div className="space-y-2 pt-2">
+              <Label className="text-xs font-bold uppercase text-plum block">
+                DuitNow QR / QRIS Barcode Image
+              </Label>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-ivory/50 p-4 rounded-2xl border border-border">
+                {duitnowQrImageUrl?.trim() ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={duitnowQrImageUrl}
+                    alt="DuitNow QR Preview"
+                    className="w-24 h-24 object-contain rounded-xl border border-border bg-white p-1 shrink-0 shadow-2xs"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-xl border border-dashed border-border bg-white flex flex-col items-center justify-center text-[10px] text-plum-muted text-center p-2 shrink-0">
+                    <CreditCard className="w-6 h-6 mb-1 opacity-40 text-plum" />
+                    <span>No QR Uploaded</span>
+                  </div>
+                )}
+
+                <div className="flex-1 w-full space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      ref={duitnowFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDuitnowQrUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isUploadingDuitnow}
+                      onClick={() => duitnowFileInputRef.current?.click()}
+                      className="h-8 text-xs font-semibold border-plum text-plum hover:bg-blush/30"
+                    >
+                      {isUploadingDuitnow ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5 mr-1.5" />
+                          <span>Upload QR Code from Device</span>
+                        </>
+                      )}
+                    </Button>
+                    {duitnowQrImageUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setDuitnowQrImageUrl("")}
+                        className="h-8 text-xs text-destructive hover:bg-destructive/10"
+                      >
+                        Remove QR
+                      </Button>
+                    )}
+                  </div>
+
+                  <Input
+                    type="url"
+                    placeholder="https://is3.cloudhost.id/velora/brand/... or paste URL"
+                    value={duitnowQrImageUrl}
+                    onChange={(e) => setDuitnowQrImageUrl(e.target.value)}
+                    className="h-9 rounded-lg font-mono text-[11px] bg-white"
+                  />
+                  <p className="text-[11px] text-plum-muted">
+                    Upload your store&apos;s DuitNow QR or QRIS barcode image. It will be displayed directly to customers on Step 04 of Checkout.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -705,15 +838,44 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
               <h3 className="font-heading font-extrabold italic text-lg text-plum uppercase">
                 Brand Monogram &amp; Logo Asset
               </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setBrandLogoUrl("/brand/myvelora-logo.png")}
-                className="text-xs border-border text-plum hover:bg-blush/30 w-fit"
-              >
-                Use Official mv Logo
-              </Button>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={logoFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isUploadingLogo}
+                  onClick={() => logoFileInputRef.current?.click()}
+                  className="text-xs border-plum text-plum hover:bg-blush/30 w-fit"
+                >
+                  {isUploadingLogo ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5 mr-1.5" />
+                      <span>Upload Logo from Device</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBrandLogoUrl("/brand/myvelora-logo.png")}
+                  className="text-xs border-border text-plum hover:bg-blush/30 w-fit"
+                >
+                  Use Official mv Logo
+                </Button>
+              </div>
             </div>
 
             <div className="p-6 rounded-2xl bg-plum flex items-center justify-center border border-plum-hover">

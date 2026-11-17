@@ -1,6 +1,6 @@
 "use server";
 
-import { uploadBufferToS3, AllowedMimeType, ALLOWED_MIME_TYPES } from "@/lib/s3";
+import { uploadBufferToS3, AllowedMimeType, ALLOWED_MIME_TYPES, isS3Configured } from "@/lib/s3";
 
 export interface UploadActionResult {
   success: boolean;
@@ -22,8 +22,7 @@ export async function uploadImageServerAction(formData: FormData): Promise<Uploa
     return { success: false, error: `Unsupported file format: ${file.type}. Please upload PNG, JPG, or WebP.` };
   }
 
-  const hasS3Config = Boolean(process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY && process.env.S3_BUCKET);
-  if (!hasS3Config) {
+  if (!isS3Configured()) {
     return { success: false, error: "Object Storage is not configured on the server." };
   }
 
