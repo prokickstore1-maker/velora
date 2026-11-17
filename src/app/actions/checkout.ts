@@ -5,7 +5,6 @@ import { db, hasDatabaseUrl, getOrCreateStoreSettings } from "@/db";
 import { orders, orderItems, productVersions, products } from "@/db/schema";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { updateTag } from "next/cache";
-import { sendAdminNotification } from "@/lib/notifications";
 
 const checkoutSchema = z.object({
   customerName: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -302,18 +301,6 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
 
     // 8. Revalidate catalog cache
     updateTag("products");
-
-    // 9. Send non-blocking Admin Notification via Bot
-    sendAdminNotification(settings, {
-      orderCode: result.orderCode,
-      customerName: result.customerName,
-      customerWhatsapp: result.customerWhatsapp,
-      totalRm: result.totalRm,
-      itemCount: result.itemsCount,
-      itemsSummary: result.itemsSummary,
-      state: result.state,
-      event: "order_created",
-    });
 
     return { success: true, orderCode: result.orderCode };
   } catch (err: unknown) {
