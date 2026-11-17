@@ -1,5 +1,15 @@
 # Daily Tasks — Myvelora Store
 
+## 2026-11-18
+
+### Target Selesai
+- [x] **Penyempurnaan Arsitektur Upload S3 & Sinkronisasi dengan Standar IDCloudHost (Commit `478d55a`)**:
+  - **Dukungan Alias Environtment Variables & IDCloudHost Fallback**: Mengadopsi standar multi-proyek (`PROKICK MY` & `kamera pung lallang`) pada [`src/lib/s3.ts`](file:///d:/project%20web/myvelorastore/src/lib/s3.ts) sehingga membaca otomatis `S3_ACCESS_KEY_ID` / `S3_ACCESS_KEY`, `S3_SECRET_ACCESS_KEY` / `S3_SECRET_KEY`, dan `S3_BUCKET` / `S3_BUCKET_PUBLIC`.
+  - **Ceph Canned ACL Resilient Retry**: Menangani kebijakan ACL Ceph Object Storage IDCloudHost dengan mencoba `ACL: "public-read"` terlebih dahulu, dan secara otomatis melakukan retry tanpa ACL jika storage menolak header Canned ACL, menjamin file selalu berhasil tersimpan tanpa error `403/400`.
+  - **Upload QRIS / DuitNow QR & Brand Logo dari Perangkat**: Mengaktifkan tombol upload langsung dari galeri/perangkat pada tab Pengaturan Pembayaran (DuitNow QR / QRIS) dan tab Brand Identity (Logo Master Toko) di [`settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx), lengkap dengan pratinjau instan (*live preview*).
+  - **Pencegahan Error CORS 100%**: Alur upload gambar di toko (`payment-client.tsx`, `products-manager.tsx`, `settings-manager.tsx`, `reviews-manager.tsx`) mengompresi gambar di browser via HTML5 Canvas (WebP ~100-150KB), lalu mengirimkan ke Next.js Server Action (`uploadImageServerAction`) yang meneruskannya ke S3 backend-to-backend tanpa interaksi CORS browser.
+  - **Verifikasi Kualitas**: Lulus validasi `npx tsc --noEmit` (EXIT=0) dan `npm run lint` (0 error).
+
 ## 2026-11-17
 
 ### Target Selesai

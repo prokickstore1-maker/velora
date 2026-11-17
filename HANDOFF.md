@@ -1,19 +1,21 @@
 # HANDOFF.md — Estafet Teknis & Guardrail Myvelora Store
 
-**Last Updated:** 2026-11-17  
-**Current Phase:** Milestone 1 Complete -> **Milestone 2 (Core Storefront, 5-Step Checkout & Admin Dashboard)**  
+**Last Updated:** 2026-11-18  
+**Current Phase:** Milestone 1 & 2 Complete -> **Production S3 Integration & Deployment on Coolify**  
 **Source Documents:** [_build_plan/prd.md](file:///d:/project%20web/myvelorastore/_build_plan/prd.md), [DESIGN.md](file:///d:/project%20web/myvelorastore/DESIGN.md), [Myvelora_Brand_Identity_PRD.pdf](file:///d:/project%20web/myvelorastore/Myvelora_Brand_Identity_PRD.pdf)
 
 ---
 
 ## 1. Status Terkini
 
-- **Milestone 1 SELESAI & Milestone 2 Storefront SELESAI**: 
-  - Proyek Next.js 16.4.6 terinisialisasi dengan TypeScript, Tailwind CSS v4, ESLint 9, `output: "standalone"` di `next.config.ts`, Google Fonts `Montserrat` dan `Poppins`, 17 komponen Shadcn UI, skema Drizzle ORM PostgreSQL (`src/db/schema.ts` & `src/db/index.ts`), utilitas S3/MinIO presigned upload (`src/lib/s3.ts`), utilitas kompresi Canvas (`src/lib/image-compress.ts`), serta komponen logo resmi `<BrandLogo />`.
-  - Seluruh Storefront Publik (Navbar 3-kolom, **Hero Banner Carousel Slider** yang diatur langsung oleh Admin di `/admin/settings`, seksi **"SHOP NOW" Category Collage Banners** (`ALBUM`, `MERCHANDISE`, `LIGHTSTICK`, `PHOTOBOOK`, `FASHION`, `STATIONERY`), seksi **`PRE ORDER`**, **`NEW ARRIVAL`**, dan **`BEST SELLER`** dengan desain kartu produk 1:1, status stok hijau/marun, dan rentang harga `RM`, tombol mengambang WhatsApp, Katalog Grid 2-kolom mobile, Product Detail dengan sticky thumb-zone bar & Customer Reviews, Cart Drawer 320px, Checkout Form 5 langkah dengan `@radix-ui/react-select` proporsional, serta Order Tracking) telah terimplementasi dan teroptimasi mobile.
-  - Mode preview lokal bebas error unhandled TCP PostgreSQL berkat penanganan isolasi `hasDatabaseUrl` langsung di `src/db/index.ts` dan Server Actions.
-- **Verifikasi Lolos**: `npx tsc --noEmit` berhasil EXIT=0 dan `npm run lint` bersih tanpa warning/error. Dev server berjalan normal di `http://localhost:3000`.
-- **Izin Operasi Dipatuhi**: Belum ada perintah `git commit`, `git push`, build produksi besar, atau eksekusi migrasi database fisik (`drizzle-kit push`) yang dijalankan tanpa izin user.
+- **Milestone 1 SELESAI & Milestone 2 Storefront + Admin Panel SELESAI**: 
+  - Proyek Next.js 16.4.6 terinisialisasi dengan TypeScript, Tailwind CSS v4, ESLint 9, `output: "standalone"` di `next.config.ts`, Google Fonts `Montserrat` dan `Poppins`, 17 komponen Shadcn UI, skema Drizzle ORM PostgreSQL (`src/db/schema.ts` & `src/db/index.ts`), utilitas S3 presigned + Server-side direct S3 upload (`src/lib/s3.ts`), utilitas kompresi Canvas (`src/lib/image-compress.ts`), serta komponen logo resmi `<BrandLogo />`.
+  - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) telah dimigrasikan via `drizzle-kit push` dan di-seed dengan data awal (katalog 10 produk K-pop, pengaturan toko, ulasan WhatsApp).
+  - Password admin `Jarwo828@Jr` telah di-hash SHA-256 (`1d3b79f404fad6c61abd28b4afe496185e0458de3c3987fa9d8c36a820712d60`).
+  - Bot Telegram `@myvelorastore_bot` terkonfigurasi untuk **hanya** mengirim notifikasi saat pembeli mengunggah bukti bayar (`payment_submitted`).
+  - Arsitektur Upload S3 diselaraskan 100% dengan standar proyek produksi IDCloudHost (`PROKICK MY` & `kamera pung lallang`) via Server Action bypass CORS dan otomatis retry tanpa ACL bila Ceph menolak Canned ACL header. Tombol upload QRIS/DuitNow QR dan Brand Logo langsung dari galeri perangkat aktif di admin settings.
+- **Verifikasi Lolos**: `npx tsc --noEmit` berhasil EXIT=0 dan `npm run lint` bersih tanpa warning/error.
+- **Izin Operasi Dipatuhi**: Sesuai instruksi user, `git push` diserahkan kepada user. Commit lokal telah dirapikan.
 
 ---
 
