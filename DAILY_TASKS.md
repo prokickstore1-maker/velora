@@ -3,6 +3,10 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Perbaikan Layout Admin Tabs Terhimpit/Mengecil (Commit `85c5cf9`)**:
+  - Memperbaiki komponen [`src/components/ui/tabs.tsx`](file:///d:/project%20web/myvelorastore/src/components/ui/tabs.tsx) yang sebelumnya menggunakan `flex gap-2 data-horizontal:flex-col` sehingga dirender sebagai `flex-row` menyamping di browser (menyebabkan daftar tab di kiri dan kartu konten di kanan terdesak menjadi kolom sempit).
+  - Mengubah orientasi bawaan menjadi `flex flex-col gap-4 w-full`, memperluas `TabsContent` menjadi `w-full`, serta menambahkan dukungan styling `data-active` pada `TabsTrigger` di [`src/components/admin/settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx).
+  - Tampilan pengaturan toko (`/admin/settings`) kini tampil normal, proporsional, dan lebar penuh (full-width 100%).
 - [x] **Penyempurnaan Arsitektur Upload S3 & Sinkronisasi dengan Standar IDCloudHost (Commit `478d55a`)**:
   - **Dukungan Alias Environtment Variables & IDCloudHost Fallback**: Mengadopsi standar multi-proyek (`PROKICK MY` & `kamera pung lallang`) pada [`src/lib/s3.ts`](file:///d:/project%20web/myvelorastore/src/lib/s3.ts) sehingga membaca otomatis `S3_ACCESS_KEY_ID` / `S3_ACCESS_KEY`, `S3_SECRET_ACCESS_KEY` / `S3_SECRET_KEY`, dan `S3_BUCKET` / `S3_BUCKET_PUBLIC`.
   - **Ceph Canned ACL Resilient Retry**: Menangani kebijakan ACL Ceph Object Storage IDCloudHost dengan mencoba `ACL: "public-read"` terlebih dahulu, dan secara otomatis melakukan retry tanpa ACL jika storage menolak header Canned ACL, menjamin file selalu berhasil tersimpan tanpa error `403/400`.
