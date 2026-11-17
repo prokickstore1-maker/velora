@@ -3,6 +3,14 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Refactoring Modular Halaman Produk Admin (Commit `f0e2f46`)**:
+  - Menghilangkan anti-pattern monolitik sebelumnya di mana form tambah/edit produk, builder versi multi-varian, kompresi gambar, dan pengaturan pre-order dipaksakan dalam satu file raksasa 1.400+ baris dan pop-up dialog melayang (`DialogContent max-h-[92vh]`).
+  - Memecah arsitektur produk menjadi halaman mandiri (*dedicated pages*) sesuai standar Next.js 16:
+    - Rute `/admin/products/new`: Halaman khusus tambah produk K-pop baru berlayar penuh (*full-width grid*).
+    - Rute `/admin/products/[id]`: Halaman khusus edit data produk & varian.
+    - Komponen mandiri [`src/components/admin/product-editor.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/product-editor.tsx): Editor form yang bersih, terpisah, dengan alur 3 langkah dan ringkasan sticky.
+    - Halaman katalog utama [`src/components/admin/products-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/products-manager.tsx) dipangkas dari 1.442 baris menjadi ~430 baris bersih, fokus pada manajemen daftar dan stok.
+  - Memastikan validasi `npx tsc --noEmit` dan `npm run lint` 100% bersih (0 errors, 0 warnings).
 - [x] **Perbaikan Layout Admin Tabs Terhimpit/Mengecil (Commit `85c5cf9`)**:
   - Memperbaiki komponen [`src/components/ui/tabs.tsx`](file:///d:/project%20web/myvelorastore/src/components/ui/tabs.tsx) yang sebelumnya menggunakan `flex gap-2 data-horizontal:flex-col` sehingga dirender sebagai `flex-row` menyamping di browser (menyebabkan daftar tab di kiri dan kartu konten di kanan terdesak menjadi kolom sempit).
   - Mengubah orientasi bawaan menjadi `flex flex-col gap-4 w-full`, memperluas `TabsContent` menjadi `w-full`, serta menambahkan dukungan styling `data-active` pada `TabsTrigger` di [`src/components/admin/settings-manager.tsx`](file:///d:/project%20web/myvelorastore/src/components/admin/settings-manager.tsx).
