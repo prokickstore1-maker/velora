@@ -11,7 +11,7 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   await setAdminSessionCookie("admin");
-  redirect("/admin");
+  return { success: true };
 }
 
 export async function adminLogoutAction() {

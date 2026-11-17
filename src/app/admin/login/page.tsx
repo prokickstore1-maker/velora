@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/common/brand-logo";
 import { adminLoginAction } from "@/app/actions/admin-auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -27,13 +29,20 @@ export default function AdminLoginPage() {
 
     try {
       const res = await adminLoginAction(formData);
-      if (res && !res.success) {
+      if (!res.success) {
         setErrorMessage(res.error || "Login failed.");
         toast.error(res.error || "Login failed.");
         setIsLoading(false);
+        return;
       }
+
+      toast.success("Login successful!");
+      router.push("/admin");
+      router.refresh();
     } catch {
-      // If redirect thrown, next.js handles it
+      setErrorMessage("Authentication failed. Please check network or reload.");
+      toast.error("Authentication failed.");
+      setIsLoading(false);
     }
   };
 
@@ -53,7 +62,7 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} method="POST" className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="password" className="text-xs font-bold text-plum uppercase">
                 Admin Password
