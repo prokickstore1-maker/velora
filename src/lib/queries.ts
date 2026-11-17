@@ -47,16 +47,13 @@ export const getPublicProducts = unstable_cache(
         },
       });
 
-      if (allProducts && allProducts.length > 0) {
-        return allProducts;
-      }
-      return MOCK_PRODUCTS as unknown as typeof allProducts;
+      return allProducts || [];
     } catch {
-      return MOCK_PRODUCTS as unknown as Array<typeof products.$inferSelect & { versions: Array<typeof productVersions.$inferSelect> }>;
+      return [];
     }
   },
   ["public_products_list"],
-  { tags: ["products"], revalidate: 3600 }
+  { tags: ["products"], revalidate: 60 }
 );
 
 /**
