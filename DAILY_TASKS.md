@@ -3,6 +3,18 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Tes Upload Produk Nyata dari Web Eksternal (KSpace Project)**:
+  - Berhasil mengekstrak data dari `https://www.kspaceproject.com/products/enhypen-official-light-stick`.
+  - Mengunggah foto resmi produk resolusi tinggi ke IDCloudHost S3 bucket `velora`: `https://is3.cloudhost.id/velora/products/enhypen-official-light-stick-ver-2-1794941310329.png`.
+  - Menerapkan **MYVELORA STORE — PRICING RULES**:
+    - Sumber: €83.95 EUR (kurs EUR-MYR ~ 4.50) → Potongan 20% → Dibulatkan ke bawah (FLOOR) → **RM 302**.
+  - Mengunggah produk lengkap ke PostgreSQL:
+    - Nama: *ENHYPEN - Official Light Stick Ver.2 (Renewal Edition)*
+    - Kategori: *Lightstick*
+    - Varian: *Ver.2 Renewal Edition* (Harga: **RM 302**, Stok: 25 unit).
+- [x] **Penerapan Paten & Engine Kalkulator Myvelora Pricing Rules (Commit `902cb75`)**:
+  - Menyusun dokumen paten [`_build_plan/pricing-rules.md`](file:///d:/project%20web/myvelorastore/_build_plan/pricing-rules.md).
+  - Mengimplementasikan modul kalkulator [`src/lib/pricing-calculator.ts`](file:///d:/project%20web/myvelorastore/src/lib/pricing-calculator.ts) dengan kurs acuan USD 4.086165, diskon tunggal 20%, dan pembulatan `Math.floor`.
 - [x] **Validasi & Aktivasi Kredensial IDCloudHost S3 Object Storage**:
   - Mengidentifikasi typo pada Access Key ID sebelumnya (`51C1MYLQVTHQPFWFIZM3` vs nilai asli `51C1MYLQVTHQPEWEIZM3` dari dashboard IDCloudHost).
   - Melakukan uji coba koneksi langsung via AWS SDK S3:
