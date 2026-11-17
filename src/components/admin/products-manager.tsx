@@ -10,6 +10,7 @@ import {
   deleteVersionAction,
 } from "@/app/actions/admin-products";
 import { getBrandAssetPresignedUrlAction } from "@/app/actions/admin-settings";
+import { uploadImageServerAction } from "@/app/actions/upload";
 import { compressImage } from "@/lib/image-compress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -214,6 +215,20 @@ export function ProductsManager({ initialProducts }: ProductsManagerProps) {
         mimeType: "image/webp",
       });
 
+      // Tier 1: Server-side direct upload to IDCloudHost S3 (No browser CORS issues)
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", "products");
+
+      const serverRes = await uploadImageServerAction(formData);
+
+      if (serverRes.success && serverRes.publicUrl) {
+        setEditingProduct((prev) => ({ ...prev, primaryImageUrl: serverRes.publicUrl! }));
+        toast.success("Product photo uploaded to storage!");
+        return;
+      }
+
+      // Tier 2: Presigned PUT Fallback
       const presigned = await getBrandAssetPresignedUrlAction(
         compressed.file.name,
         "image/webp"

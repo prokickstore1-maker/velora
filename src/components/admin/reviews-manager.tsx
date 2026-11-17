@@ -15,7 +15,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, MessageSquare, Loader2 } from "lucide-react";
+import { Plus, Trash2, MessageSquare, Loader2, Upload } from "lucide-react";
+import { uploadImageServerAction } from "@/app/actions/upload";
+import { compressImage } from "@/lib/image-compress";
 
 interface ReviewsManagerProps {
   initialReviews: CustomerReview[];
@@ -27,6 +29,38 @@ export function ReviewsManager({ initialReviews }: ReviewsManagerProps) {
   const [imageUrl, setImageUrl] = useState("");
   const [caption, setCaption] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const compressed = await compressImage(file, {
+        maxWidth: 1080,
+        maxHeight: 1920, // 9:16 story ratio
+        quality: 0.85,
+        mimeType: "image/webp",
+      });
+
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", "reviews");
+
+      const res = await uploadImageServerAction(formData);
+      if (res.success && res.publicUrl) {
+        setImageUrl(res.publicUrl);
+        toast.success("Review screenshot uploaded to storage!");
+      } else {
+        toast.error(res.error || "Failed to upload to storage.");
+      }
+    } catch {
+      toast.error("Failed to process image.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleOpenNew = () => {
     setImageUrl("");
@@ -149,15 +183,31 @@ export function ReviewsManager({ initialReviews }: ReviewsManagerProps) {
 
           <form onSubmit={handleSave} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase text-plum">Image URL (9:16 Ratio) *</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase text-plum">Screenshot Image *</Label>
+                <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-pink font-semibold hover:underline">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{isUploading ? "Uploading..." : "Upload from Device"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={isUploading}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+              </div>
               <Input
                 required
                 type="url"
-                placeholder="https://..."
+                placeholder="https://is3.cloudhost.id/velora/reviews/..."
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 className="h-11 rounded-xl font-mono text-xs"
               />
+              <p className="text-[11px] text-plum-muted">
+                Tip: Upload straight from device (auto-compressed to WebP 9:16) or paste an image URL.
+              </p>
             </div>
 
             <div className="space-y-1.5">

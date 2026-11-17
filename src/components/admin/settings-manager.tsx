@@ -6,6 +6,7 @@ import {
   updateStoreSettingsAction,
   getBrandAssetPresignedUrlAction,
 } from "@/app/actions/admin-settings";
+import { uploadImageServerAction } from "@/app/actions/upload";
 import { compressImage } from "@/lib/image-compress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +118,20 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
         mimeType: "image/webp",
       });
 
+      // Tier 1: Server-side direct upload to IDCloudHost S3 (No browser CORS issues)
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", "brand");
+
+      const serverRes = await uploadImageServerAction(formData);
+
+      if (serverRes.success && serverRes.publicUrl) {
+        setHeroBannerImageUrl(serverRes.publicUrl);
+        toast.success("Banner image uploaded to storage.");
+        return;
+      }
+
+      // Tier 2: Presigned PUT Fallback
       const presigned = await getBrandAssetPresignedUrlAction(
         compressed.file.name,
         "image/webp"

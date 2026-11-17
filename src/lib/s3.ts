@@ -66,3 +66,42 @@ export async function createPresignedUploadUrl({
 
   return { uploadUrl, fileKey, publicUrl };
 }
+
+/**
+ * Direct server-side upload to S3/IDCloudHost (Bypasses any browser CORS issues)
+ */
+export async function uploadBufferToS3({
+  buffer,
+  folder,
+  filename,
+  contentType,
+}: {
+  buffer: Buffer;
+  folder: "products" | "receipts" | "reviews" | "brand";
+  filename: string;
+  contentType: AllowedMimeType;
+}): Promise<{ fileKey: string; publicUrl: string }> {
+  if (!ALLOWED_MIME_TYPES.includes(contentType)) {
+    throw new Error(`Unsupported content type: ${contentType}`);
+  }
+
+  const sanitizedName = filename.toLowerCase().replace(/[^a-z0-9.-]/g, "_");
+  const uniquePrefix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  const fileKey = `${folder}/${uniquePrefix}-${sanitizedName}`;
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: s3Bucket,
+      Key: fileKey,
+      Body: buffer,
+      ContentType: contentType,
+      ACL: "public-read",
+    })
+  );
+
+  const publicUrl = s3PublicBaseUrl
+    ? `${s3PublicBaseUrl.replace(/\/$/, "")}/${fileKey}`
+    : `${s3Endpoint ? s3Endpoint.replace(/\/$/, "") : `https://${s3Bucket}.s3.${s3Region}.amazonaws.com`}/${fileKey}`;
+
+  return { fileKey, publicUrl };
+}

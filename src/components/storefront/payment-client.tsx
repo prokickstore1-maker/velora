@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Order, OrderItem, StoreSettings } from "@/db/schema";
 import { compressImage } from "@/lib/image-compress";
 import { getReceiptPresignedUrlAction, submitPaymentReceiptAction } from "@/app/actions/payment";
+import { uploadImageServerAction } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,32 +85,44 @@ export function PaymentClient({ order, settings }: PaymentClientProps) {
     try {
       let finalReceiptUrl = order.paymentReceiptUrl;
 
-      // If new file chosen, upload via presigned URL or data URL
+      // If new file chosen, upload via server-side action (CORS-immune) or presigned URL
       if (selectedFile) {
-        const presigned = await getReceiptPresignedUrlAction(order.orderCode, selectedFile.name);
+        // Tier 1: Direct Server-Side Upload (Eliminates IDCloudHost CORS preflight issues)
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("folder", "receipts");
 
-        if (presigned.success && presigned.uploadUrl && presigned.publicUrl) {
-          // Direct S3/MinIO PUT upload
-          const uploadRes = await fetch(presigned.uploadUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": selectedFile.type,
-            },
-            body: selectedFile,
-          });
+        const serverUpload = await uploadImageServerAction(formData);
 
-          if (!uploadRes.ok) {
-            throw new Error("Direct storage upload failed");
-          }
-          finalReceiptUrl = presigned.publicUrl;
+        if (serverUpload.success && serverUpload.publicUrl) {
+          finalReceiptUrl = serverUpload.publicUrl;
         } else {
-          // Fallback: convert to base64 Data URL for local dev if S3 is unconfigured
-          finalReceiptUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(selectedFile);
-          });
+          // Tier 2: Presigned Direct PUT fallback
+          const presigned = await getReceiptPresignedUrlAction(order.orderCode, selectedFile.name);
+
+          if (presigned.success && presigned.uploadUrl && presigned.publicUrl) {
+            const uploadRes = await fetch(presigned.uploadUrl, {
+              method: "PUT",
+              headers: {
+                "Content-Type": selectedFile.type,
+              },
+              body: selectedFile,
+            });
+
+            if (uploadRes.ok) {
+              finalReceiptUrl = presigned.publicUrl;
+            }
+          }
+
+          // Tier 3: Local base64 fallback for local dev when S3 is offline
+          if (!finalReceiptUrl) {
+            finalReceiptUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(selectedFile);
+            });
+          }
         }
       }
 
