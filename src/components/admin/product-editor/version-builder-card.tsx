@@ -1,9 +1,13 @@
 "use client";
 
-import { Layers, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Layers, Plus, Trash2, Upload, Loader2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { compressImage } from "@/lib/image-compress";
+import { uploadImageServerAction } from "@/app/actions/upload";
+import { toast } from "sonner";
 import { DraftVersionItem } from "./types";
 
 interface VersionBuilderCardProps {
@@ -23,12 +27,45 @@ export function VersionBuilderCard({
   onAddCustomVersion,
   onRemoveDraftVersion,
 }: VersionBuilderCardProps) {
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+
+  const handleVersionPhotoUpload = async (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIdx(idx);
+    try {
+      const compressed = await compressImage(file, {
+        maxWidth: 1000,
+        maxHeight: 1000,
+        quality: 0.85,
+        mimeType: "image/webp",
+      });
+
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", "products");
+
+      const res = await uploadImageServerAction(formData);
+      if (res.success && res.publicUrl) {
+        onUpdateDraftVersion(idx, "imageUrl", res.publicUrl);
+        toast.success(`Photo for Version #${idx + 1} uploaded!`);
+      } else {
+        toast.error(res.error || "Failed to upload version photo.");
+      }
+    } catch {
+      toast.error("Failed to process image.");
+    } finally {
+      setUploadingIdx(null);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-5">
       <div className="flex items-center justify-between pb-2 border-b border-border">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-pink" />
-          <h2 className="text-sm font-bold uppercase text-plum">2. Versions &amp; Physical Inventory</h2>
+          <h2 className="text-sm font-bold uppercase text-plum">2. Versions &amp; Multi-Photo Inventory</h2>
         </div>
         <span className="text-xs font-bold text-plum bg-blush/40 px-2.5 py-1 rounded-full">
           {draftVersions.length} {draftVersions.length === 1 ? "Version" : "Versions"}
@@ -133,6 +170,59 @@ export function VersionBuilderCard({
                   value={ver.stock}
                   onChange={(e) => onUpdateDraftVersion(idx, "stock", parseInt(e.target.value, 10) || 0)}
                   className="h-10 text-xs font-bold text-center"
+                />
+              </div>
+            </div>
+
+            {/* Version Photo Upload (Multi-Photo Support) */}
+            <div className="pt-2 border-t border-border/40 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="relative w-12 h-12 rounded-lg border border-border overflow-hidden bg-ivory shrink-0 flex items-center justify-center shadow-2xs">
+                {ver.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={ver.imageUrl} alt={ver.versionName} className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-5 h-5 text-border" />
+                )}
+              </div>
+
+              <div className="flex-1 w-full space-y-1">
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex items-center justify-center h-8 px-3 rounded-lg border border-plum/30 text-plum hover:bg-blush/30 text-xs font-semibold cursor-pointer">
+                    {uploadingIdx === idx ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        <span>Uploading Photo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 mr-1.5" />
+                        <span>Upload Version Photo</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={uploadingIdx === idx}
+                      onChange={(e) => handleVersionPhotoUpload(idx, e)}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {ver.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => onUpdateDraftVersion(idx, "imageUrl", "")}
+                      className="text-xs text-destructive hover:underline cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <Input
+                  placeholder="Or paste version photo URL..."
+                  value={ver.imageUrl || ""}
+                  onChange={(e) => onUpdateDraftVersion(idx, "imageUrl", e.target.value)}
+                  className="h-7 text-[11px] font-mono bg-ivory/50"
                 />
               </div>
             </div>
