@@ -3,6 +3,14 @@
 ## 2026-11-19
 
 ### Target Selesai
+- [x] **Bulk Import & Deduping Light Sticks dari K-Pop Music Town LA (`kpopmusictownla.com/collections/light-sticks`)**:
+  - Mengekstrak **191 produk light stick** dari K-Pop Music Town LA.
+  - **Pencegahan Data Ganda (Anti-Duplication Guard)**: Melakukan komparasi cerdas terhadap 139 light stick yang sudah ada di database (pencocokan nama artis, tipe versi, dan slug). Sebanyak **102 produk yang sudah ada di database otomatis dilewati (SKIPPED)**.
+  - Berhasil mengimpor **89 produk baru yang benar-benar belum ada** (&TEAM Ver 2, aespa Mini Fanlight Keyring Ver 2, ATEEZ Lightiny Keyring Ver 3, TWS Keyring, BTS Army Bomb Ver 4, (G)I-DLE Ver 3, Lisa Keyring, TripleS, TXT Keyring V2, ITZY Ver 2, H1-KEY, G-Dragon World Tour Keyring & Cradle, Meovv, SuperM, Sunmi, dll.) ke kategori resmi **`Lightstick`**.
+  - 100% foto sampul beresolusi tinggi berhasil diunggah ke S3 IDCloudHost (`velora/products/...`).
+  - Dikonversi menggunakan formula paten MYR: $\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$.
+  - Total katalog aktif toko kini mencapai **577 produk** (**244 Album**, **228 Lightstick**, **105 Photobook**).
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
 - [x] **Pengujian & Verifikasi Koneksi Bot Telegram Admin (`@myvelorastore_bot`)**:
   - Melakukan uji koneksi API Telegram resmi (`getMe`, `getWebhookInfo`, `getChat`).
   - Terverifikasi terhubung dengan akun Telegram Admin: **Pr Krick** (`@Gantengbanget77`, Chat ID: `7562689082`).
