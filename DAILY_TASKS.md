@@ -3,6 +3,7 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Commit & Staging Seluruh Fitur**: Berhasil di-stage dan di-commit (`917eb02` - *feat: catalog pagination, smart search, store hours auto-close and telegram bot bank rotation*).
 - [x] **Integrasi Upload Rekening Harian & DuitNow QR via Bot Telegram (`@myvelorastore_bot`)**:
   - Membuat engine Bot Telegram Admin di [src/lib/telegram-bot.ts](file:///d:/project%20web/myvelorastore/src/lib/telegram-bot.ts) dan endpoint Webhook + Sync di [src/app/api/telegram/webhook/route.ts](file:///d:/project%20web/myvelorastore/src/app/api/telegram/webhook/route.ts).
   - **Upload Foto DuitNow QR Langsung dari Chat Telegram**: Admin cukup mengirim **Foto QR** ke bot Telegram (bisa disertai caption `NamaBank | NoRekening | AtasNama`). Bot otomatis mengunduh foto dari Telegram, mengunggahnya ke S3 IDCloudHost (`velora/brand/...`), menyimpan rekening & QR ke database PostgreSQL, mengaktifkan `paymentEnabled = true`, dan langsung membuka toko hingga pukul 22:00 MYT.
