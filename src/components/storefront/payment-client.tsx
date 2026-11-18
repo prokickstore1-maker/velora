@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Order, OrderItem, StoreSettings } from "@/db/schema";
 import { compressImage } from "@/lib/image-compress";
 import { getReceiptPresignedUrlAction, submitPaymentReceiptAction } from "@/app/actions/payment";
 import { uploadImageServerAction } from "@/app/actions/upload";
+import { evaluateStorePaymentStatus } from "@/lib/store-hours";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,8 @@ import {
   CheckCircle2,
   Loader2,
   ArrowRight,
-  AlertCircle,
+  Clock,
+  MessageCircle,
 } from "lucide-react";
 
 interface PaymentClientProps {
@@ -40,6 +42,15 @@ export function PaymentClient({ order, settings }: PaymentClientProps) {
   const [referenceNote, setReferenceNote] = useState(order.paymentReference || "");
   const [isUploading, setIsUploading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
+
+  // Tick every 30s so bank details automatically disappear at 10:00 PM MYT even if tab is kept open
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -151,7 +162,16 @@ export function PaymentClient({ order, settings }: PaymentClientProps) {
     }
   };
 
-  const isPaymentEnabled = Boolean(settings?.paymentEnabled);
+  const storeStatus = evaluateStorePaymentStatus(settings, now);
+  const isPaymentEnabled = storeStatus.isOpen;
+
+  const cleanWa = settings?.adminWhatsappNumber
+    ? settings.adminWhatsappNumber.replace(/\D/g, "")
+    : "";
+  const waMsg = `Hello Myvelora Store! 👋\nI would like to complete payment for my order:\nOrder Code: ${order.orderCode}\nTotal: RM ${parseFloat(order.totalRm).toFixed(2)}\n\nPlease share your active bank account / QR details. Thank you!`;
+  const whatsappHref = cleanWa
+    ? `https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}`
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -195,23 +215,42 @@ export function PaymentClient({ order, settings }: PaymentClientProps) {
 
       {/* Payment Instructions Section */}
       {!isPaymentEnabled ? (
-        <Card className="bg-white border border-border ring-0 text-center">
-          <CardContent className="py-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-blush flex items-center justify-center mx-auto text-plum">
-              <AlertCircle className="w-6 h-6 text-pink" />
+        <Card className="bg-white border border-border ring-0 text-center overflow-hidden">
+          <div className="bg-plum text-white p-6 space-y-2">
+            <div className="w-12 h-12 rounded-full bg-white/15 flex items-center justify-center mx-auto text-pink">
+              <Clock className="w-6 h-6" />
             </div>
-            <h3 className="font-heading font-bold text-lg text-plum uppercase">
-              Payment Details Being Configured
+            <h3 className="mv-heading-italic text-xl sm:text-2xl text-white uppercase">
+              STORE IS CLOSED NOW
             </h3>
-            <p className="text-sm text-plum-muted max-w-md mx-auto">
-              Payment instructions will be shared directly with you via WhatsApp. You may proceed to confirmation to verify your order code.
+            <p className="text-xs sm:text-sm text-white/85 max-w-md mx-auto">
+              Our website payment counter closes daily at 10:00 PM MYT and reopens at 10:00 AM MYT once our daily bank account is updated.
             </p>
-            <Button
-              onClick={() => router.push(`/orders/${order.orderCode}/confirmation`)}
-              className="bg-plum hover:bg-plum-hover text-white"
-            >
-              Continue to Order Confirmation
-            </Button>
+          </div>
+          <CardContent className="py-6 space-y-4">
+            <p className="text-xs sm:text-sm text-plum-muted max-w-md mx-auto">
+              To complete payment right now for Order <strong className="text-plum font-mono">{order.orderCode}</strong>, please contact our admin directly via WhatsApp.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              {whatsappHref && (
+                <Button
+                  asChild
+                  className="bg-[#25D366] hover:bg-[#1fb855] text-white font-bold h-11 px-6 rounded-xl"
+                >
+                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="w-4 h-4 mr-2 fill-current" />
+                    Pay / Order via WhatsApp
+                  </a>
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/orders/${order.orderCode}/confirmation`)}
+                className="border-plum text-plum hover:bg-blush/30 h-11 rounded-xl"
+              >
+                View Order Confirmation
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

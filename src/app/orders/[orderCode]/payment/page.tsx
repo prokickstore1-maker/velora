@@ -1,8 +1,14 @@
 import { notFound } from "next/navigation";
-import { getOrderByCode, getPublicStoreSettings } from "@/lib/queries";
+import { getOrCreateStoreSettings } from "@/db";
+import { MOCK_STORE_SETTINGS } from "@/db/mock-data";
+import { getOrderByCode } from "@/lib/queries";
 import { Navbar } from "@/components/storefront/navbar";
 import { Footer } from "@/components/storefront/footer";
 import { PaymentClient } from "@/components/storefront/payment-client";
+import { sanitizePublicPaymentSettings } from "@/lib/store-hours";
+import { syncTelegramUpdatesIfNeeded } from "@/lib/telegram-bot";
+
+export const dynamic = "force-dynamic";
 
 interface PaymentPageProps {
   params: Promise<{ orderCode: string }>;
@@ -17,14 +23,18 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
   // Next.js 16 requirement: await params
   const { orderCode } = await params;
 
-  const [order, settings] = await Promise.all([
+  const [order, initialSettings] = await Promise.all([
     getOrderByCode(orderCode),
-    getPublicStoreSettings(),
+    getOrCreateStoreSettings().catch(() => null),
   ]);
 
   if (!order) {
     notFound();
   }
+
+  await syncTelegramUpdatesIfNeeded(initialSettings || MOCK_STORE_SETTINGS);
+  const rawSettings = (await getOrCreateStoreSettings().catch(() => null)) || MOCK_STORE_SETTINGS;
+  const settings = sanitizePublicPaymentSettings(rawSettings);
 
   const freeShippingThreshold = settings?.freeShippingMinRm
     ? parseFloat(settings.freeShippingMinRm)

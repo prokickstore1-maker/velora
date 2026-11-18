@@ -22,7 +22,7 @@ export const getPublicStoreSettings = unstable_cache(
     }
   },
   ["public_store_settings"],
-  { tags: ["settings"], revalidate: 3600 }
+  { tags: ["settings"], revalidate: 60 }
 );
 
 /**
@@ -88,7 +88,7 @@ export const getProductBySlug = unstable_cache(
     }
   },
   ["public_product_by_slug"],
-  { tags: ["products"], revalidate: 3600 }
+  { tags: ["products"], revalidate: 60 }
 );
 
 /**

@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/admin-settings";
 import { uploadImageServerAction } from "@/app/actions/upload";
 import { compressImage } from "@/lib/image-compress";
+import { evaluateStorePaymentStatus } from "@/lib/store-hours";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -53,15 +54,26 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
   const [heroBannerTitle, setHeroBannerTitle] = useState(initialSettings?.heroBannerTitle || "");
   const [heroBannerLink, setHeroBannerLink] = useState(initialSettings?.heroBannerLink || "/shop");
 
+  const initialStoreStatus = evaluateStorePaymentStatus(initialSettings);
+
   const [shippingEnabled, setShippingEnabled] = useState(Boolean(initialSettings?.shippingEnabled));
   const [flatShippingFeeRm, setFlatShippingFeeRm] = useState(initialSettings?.flatShippingFeeRm || "8.00");
   const [freeShippingMinRm, setFreeShippingMinRm] = useState(initialSettings?.freeShippingMinRm || "150.00");
 
-  const [paymentEnabled, setPaymentEnabled] = useState(Boolean(initialSettings?.paymentEnabled));
+  // If yesterday's bank account expired at 10:00 PM MYT, automatically start empty so Admin uploads today's account
+  const [paymentEnabled, setPaymentEnabled] = useState(
+    initialStoreStatus.isOpen ? Boolean(initialSettings?.paymentEnabled) : false
+  );
   const [bankName, setBankName] = useState(initialSettings?.bankName || "Maybank");
-  const [bankAccountNumber, setBankAccountNumber] = useState(initialSettings?.bankAccountNumber || "");
-  const [bankAccountHolder, setBankAccountHolder] = useState(initialSettings?.bankAccountHolder || "");
-  const [duitnowQrImageUrl, setDuitnowQrImageUrl] = useState(initialSettings?.duitnowQrImageUrl || "");
+  const [bankAccountNumber, setBankAccountNumber] = useState(
+    initialStoreStatus.isOpen ? initialSettings?.bankAccountNumber || "" : ""
+  );
+  const [bankAccountHolder, setBankAccountHolder] = useState(
+    initialStoreStatus.isOpen ? initialSettings?.bankAccountHolder || "" : ""
+  );
+  const [duitnowQrImageUrl, setDuitnowQrImageUrl] = useState(
+    initialStoreStatus.isOpen ? initialSettings?.duitnowQrImageUrl || "" : ""
+  );
   const [paymentInstructions, setPaymentInstructions] = useState(initialSettings?.paymentInstructions || "");
 
   const [adminWhatsappNumber, setAdminWhatsappNumber] = useState(initialSettings?.adminWhatsappNumber || "");
@@ -153,7 +165,8 @@ export function SettingsManager({ initialSettings }: SettingsManagerProps) {
       const serverRes = await uploadImageServerAction(formData);
       if (serverRes.success && serverRes.publicUrl) {
         setDuitnowQrImageUrl(serverRes.publicUrl);
-        toast.success("DuitNow QR uploaded to storage!");
+        setPaymentEnabled(true);
+        toast.success("DuitNow QR uploaded! Click Save Changes to open store for today.");
       } else {
         toast.error(serverRes.error || "Failed to upload QR image.");
       }

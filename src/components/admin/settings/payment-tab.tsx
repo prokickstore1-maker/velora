@@ -1,10 +1,11 @@
 "use client";
 
-import { CreditCard, Upload, Loader2 } from "lucide-react";
+import { CreditCard, Upload, Loader2, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getMalaysiaTimeParts } from "@/lib/store-hours";
 
 interface PaymentTabProps {
   paymentEnabled: boolean;
@@ -41,11 +42,49 @@ export function PaymentTab({
   duitnowFileInputRef,
   onDuitnowQrUpload,
 }: PaymentTabProps) {
+  const nowMyt = getMalaysiaTimeParts();
+  const isNightClosed = nowMyt.hour >= 22 || nowMyt.hour < 6;
+  const hasTodayDetails = Boolean(bankAccountNumber.trim() || duitnowQrImageUrl.trim());
+  const isReadyToOpen = !isNightClosed && paymentEnabled && hasTodayDetails;
+
   return (
     <div className="bg-white p-6 rounded-2xl border border-border shadow-xs space-y-5">
-      <h3 className="font-heading font-extrabold italic text-lg text-plum uppercase pb-2 border-b border-border">
-        Bank Transfer &amp; DuitNow QR
-      </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+        <h3 className="font-heading font-extrabold italic text-lg text-plum uppercase">
+          Daily Bank Transfer &amp; DuitNow QR
+        </h3>
+        <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-plum bg-ivory px-3 py-1 rounded-lg border border-border">
+          <Clock className="w-3.5 h-3.5 text-pink" />
+          Malaysia Time: {nowMyt.dateStr} • {nowMyt.formattedTime}
+        </span>
+      </div>
+
+      {/* Daily Rotation & 10:00 PM Auto-Close Status Banner */}
+      <div
+        className={`p-4 rounded-xl border text-xs flex items-start gap-3 ${
+          isReadyToOpen
+            ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+            : "bg-amber-50 border-amber-200 text-amber-900"
+        }`}
+      >
+        {isReadyToOpen ? (
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+        ) : (
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        )}
+        <div className="space-y-1 leading-relaxed">
+          <p className="font-bold text-sm">
+            {isNightClosed
+              ? "Night Cutoff Active (Past 10:00 PM MYT) — Store Checkout is Closed"
+              : isReadyToOpen
+              ? "Daily Payment Account Ready — Click 'Save Changes' to Open Store Until 10:00 PM MYT"
+              : "Store Checkout is Closed — Please Upload Today's Bank Account / DuitNow QR"}
+          </p>
+          <p>
+            Every night at <strong>10:00 PM MYT</strong>, your store&apos;s bank account and DuitNow QR automatically expire and disappear from the website. While closed, customers on Checkout see <em>&quot;Store is Closed Now&quot;</em> and can order directly via WhatsApp. Upload your new daily account each morning (10:00 AM MYT) and click <strong>Save Changes</strong> to reopen website checkout.
+          </p>
+        </div>
+      </div>
 
       <label className="flex items-center gap-3 cursor-pointer text-sm font-semibold text-plum">
         <input
@@ -54,7 +93,7 @@ export function PaymentTab({
           onChange={(e) => setPaymentEnabled(e.target.checked)}
           className="w-5 h-5 rounded text-plum cursor-pointer"
         />
-        <span>Enable Payment Instructions on Website (Step 04)</span>
+        <span>Enable Payment Instructions &amp; Open Website Checkout for Today</span>
       </label>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -69,11 +108,15 @@ export function PaymentTab({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold uppercase text-plum">Account Number</Label>
+          <Label className="text-xs font-bold uppercase text-plum">Account Number (Daily)</Label>
           <Input
-            placeholder="e.g. 5140 1234 5678"
+            placeholder="Enter today's account number..."
             value={bankAccountNumber}
-            onChange={(e) => setBankAccountNumber(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setBankAccountNumber(val);
+              if (val.trim()) setPaymentEnabled(true);
+            }}
             className="h-11 rounded-xl font-mono text-sm"
           />
         </div>
@@ -156,7 +199,11 @@ export function PaymentTab({
               type="url"
               placeholder="https://is3.cloudhost.id/velora/brand/... or paste URL"
               value={duitnowQrImageUrl}
-              onChange={(e) => setDuitnowQrImageUrl(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDuitnowQrImageUrl(val);
+                if (val.trim()) setPaymentEnabled(true);
+              }}
               className="h-9 rounded-lg font-mono text-[11px] bg-white"
             />
             <p className="text-[11px] text-plum-muted">

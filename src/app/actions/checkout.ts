@@ -6,6 +6,7 @@ import { orders, orderItems, productVersions, products } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { calculateEffectivePrice } from "@/lib/promo";
+import { evaluateStorePaymentStatus } from "@/lib/store-hours";
 
 const checkoutSchema = z.object({
   customerName: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -73,6 +74,15 @@ export async function placeOrderAction(rawData: z.infer<typeof checkoutSchema>):
 
   try {
     const settings = await getOrCreateStoreSettings();
+
+    // Enforce Daily Store Operating Hours & Daily Bank Account Rotation (10:00 AM - 10:00 PM MYT)
+    const storeStatus = evaluateStorePaymentStatus(settings);
+    if (!storeStatus.isOpen) {
+      return {
+        success: false,
+        error: "Store is closed now. Please place your order directly via WhatsApp.",
+      };
+    }
 
     // Fetch and calculate order within an ACID transaction with row-level locks
     const result = await db.transaction(async (tx) => {

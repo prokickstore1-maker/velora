@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
 import { placeOrderAction } from "@/app/actions/checkout";
+import type { StoreSettings } from "@/db/schema";
+import { evaluateStorePaymentStatus } from "@/lib/store-hours";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ShoppingBag, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ShoppingBag, ArrowLeft, ArrowRight, Loader2, Clock, MessageCircle } from "lucide-react";
 
 const MALAYSIAN_STATES = [
   "Johor",
@@ -49,16 +51,29 @@ interface CheckoutFormProps {
   shippingEnabled: boolean;
   flatShippingFeeRm: number;
   freeShippingThreshold: number | null;
+  settings?: StoreSettings | null;
 }
 
 export function CheckoutForm({
   shippingEnabled,
   flatShippingFeeRm,
   freeShippingThreshold,
+  settings,
 }: CheckoutFormProps) {
   const router = useRouter();
   const { items, subtotalRm, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [now, setNow] = useState<Date>(() => new Date());
+
+  // Tick every 30s so checkout auto-closes live at 10:00 PM MYT without page reload
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const storeStatus = evaluateStorePaymentStatus(settings, now);
 
   // Form State
   const [customerName, setCustomerName] = useState("");
@@ -96,6 +111,136 @@ export function CheckoutForm({
         <Button asChild className="bg-plum hover:bg-plum-hover text-white">
           <Link href="/shop">Browse Catalog</Link>
         </Button>
+      </div>
+    );
+  }
+
+  // If Store Checkout is Closed (After 10:00 PM MYT or awaiting daily 10:00 AM bank account upload)
+  if (!storeStatus.isOpen) {
+    const cleanWa = settings?.adminWhatsappNumber
+      ? settings.adminWhatsappNumber.replace(/\D/g, "")
+      : "";
+
+    const itemLines = items
+      .map(
+        (item, idx) =>
+          `${idx + 1}. ${item.productName} (${item.versionName}) x${item.quantity} — RM ${(
+            parseFloat(item.priceRm) * item.quantity
+          ).toFixed(2)}`
+      )
+      .join("\n");
+
+    const waMessage = [
+      "Hello Myvelora Store! 👋",
+      "Website checkout is currently closed, so I would like to place my order directly via WhatsApp:",
+      "",
+      itemLines,
+      "",
+      `Subtotal: RM ${subtotalRm.toFixed(2)}`,
+      shippingEnabled
+        ? `Estimated Shipping: ${
+            currentShippingFee === 0 ? "FREE" : `RM ${currentShippingFee.toFixed(2)}`
+          }`
+        : null,
+      `Estimated Total: RM ${grandTotalRm.toFixed(2)}`,
+      "",
+      "Please share your active payment details so I can complete my order. Thank you!",
+    ]
+      .filter((line) => line !== null)
+      .join("\n");
+
+    const whatsappOrderHref = cleanWa
+      ? `https://wa.me/${cleanWa}?text=${encodeURIComponent(waMessage)}`
+      : null;
+
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card className="bg-white border border-border ring-0 shadow-xs overflow-hidden">
+          <div className="bg-plum text-white p-6 sm:p-8 text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center mx-auto text-pink">
+              <Clock className="w-7 h-7" />
+            </div>
+            <span className="inline-block text-[11px] font-bold tracking-widest uppercase bg-pink text-white px-3 py-1 rounded-full">
+              Daily Website Checkout: 10:00 AM – 10:00 PM MYT
+            </span>
+            <h1 className="mv-heading-italic text-2xl sm:text-4xl text-white uppercase">
+              STORE IS CLOSED NOW
+            </h1>
+            <p className="text-xs sm:text-sm text-white/85 max-w-md mx-auto leading-relaxed">
+              Our website payment counter closes automatically at 10:00 PM MYT each night and reopens at 10:00 AM MYT once our daily bank account is updated.
+            </p>
+          </div>
+
+          <CardContent className="p-6 sm:p-8 space-y-6">
+            <div className="p-4 rounded-xl bg-blush-soft border border-blush text-center space-y-2">
+              <p className="text-xs sm:text-sm font-semibold text-plum">
+                Want to secure your items right now?
+              </p>
+              <p className="text-xs text-plum-muted leading-relaxed">
+                You can still place your order directly via WhatsApp! Click the button below and your cart items will be automatically formatted for our admin.
+              </p>
+            </div>
+
+            {/* Cart Items Preview */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-plum">
+                Your Cart Summary ({items.reduce((sum, i) => sum + i.quantity, 0)} items)
+              </h3>
+              <div className="divide-y divide-border border border-border rounded-xl bg-ivory/40 px-4 py-2 max-h-64 overflow-y-auto">
+                {items.map((item) => (
+                  <div key={item.versionId} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-plum truncate">{item.productName}</p>
+                      <p className="text-plum-muted text-[11px]">
+                        {item.versionName} × {item.quantity}
+                      </p>
+                    </div>
+                    <span className="font-heading font-bold text-plum shrink-0">
+                      RM {(parseFloat(item.priceRm) * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-2 text-sm font-bold text-plum">
+                <span>Estimated Total</span>
+                <span className="font-heading text-lg">RM {grandTotalRm.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              {whatsappOrderHref ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="flex-1 h-12 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-white font-bold text-sm shadow-sm"
+                >
+                  <a href={whatsappOrderHref} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="w-5 h-5 mr-2 fill-current" />
+                    Order Directly via WhatsApp
+                  </a>
+                </Button>
+              ) : (
+                <p className="text-xs text-center text-plum-muted w-full py-2">
+                  Please check back at 10:00 AM MYT when website checkout reopens.
+                </p>
+              )}
+
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 rounded-xl border-border text-plum hover:bg-blush/30 text-xs font-semibold"
+              >
+                <Link href="/shop">
+                  <ArrowLeft className="w-4 h-4 mr-1.5" />
+                  Back to Catalog
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

@@ -125,11 +125,49 @@ export function CategoryBannersSection({ products }: CategoryBannersSectionProps
               const pCat = p.category.toLowerCase();
               const targetKey = cat.key.toLowerCase();
               const targetLabel = cat.label.toLowerCase();
-              return (
+              if (
                 pCat === targetKey ||
                 pCat === targetLabel ||
-                (cat.key.toLowerCase() === "merch" && pCat === "merchandise")
-              );
+                (targetKey === "merch" && pCat === "merchandise")
+              ) {
+                return true;
+              }
+              const textCorpus = `${p.name} ${p.versions.map((v) => v.versionName).join(" ")}`.toLowerCase();
+              if (targetKey === "photobook" && (textCorpus.includes("photobook") || textCorpus.includes("photo book"))) {
+                return true;
+              }
+              if (
+                targetKey === "merch" &&
+                (textCorpus.includes("keyring") ||
+                  textCorpus.includes("keychain") ||
+                  textCorpus.includes("cradle") ||
+                  textCorpus.includes("pouch") ||
+                  textCorpus.includes("package") ||
+                  textCorpus.includes("kit"))
+              ) {
+                return true;
+              }
+              if (
+                targetKey === "fashion" &&
+                (textCorpus.includes("bag") ||
+                  textCorpus.includes("tote") ||
+                  textCorpus.includes("hoodie") ||
+                  textCorpus.includes("shirt") ||
+                  textCorpus.includes("cap"))
+              ) {
+                return true;
+              }
+              if (
+                targetKey === "stationery" &&
+                (textCorpus.includes("note") ||
+                  textCorpus.includes("diary") ||
+                  textCorpus.includes("calendar") ||
+                  textCorpus.includes("binder") ||
+                  textCorpus.includes("sticker"))
+              ) {
+                return true;
+              }
+              return false;
             });
 
             // Gather up to 6 tile images from actual category products + fallbacks

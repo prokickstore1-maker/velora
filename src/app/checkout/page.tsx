@@ -1,7 +1,12 @@
-import { getPublicStoreSettings } from "@/lib/queries";
+import { getOrCreateStoreSettings } from "@/db";
+import { MOCK_STORE_SETTINGS } from "@/db/mock-data";
 import { Navbar } from "@/components/storefront/navbar";
 import { Footer } from "@/components/storefront/footer";
 import { CheckoutForm } from "@/components/storefront/checkout-form";
+import { sanitizePublicPaymentSettings } from "@/lib/store-hours";
+import { syncTelegramUpdatesIfNeeded } from "@/lib/telegram-bot";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Checkout | Myvelora Store",
@@ -9,7 +14,10 @@ export const metadata = {
 };
 
 export default async function CheckoutPage() {
-  const settings = await getPublicStoreSettings();
+  let rawSettings = (await getOrCreateStoreSettings().catch(() => null)) || MOCK_STORE_SETTINGS;
+  await syncTelegramUpdatesIfNeeded(rawSettings);
+  rawSettings = (await getOrCreateStoreSettings().catch(() => null)) || MOCK_STORE_SETTINGS;
+  const settings = sanitizePublicPaymentSettings(rawSettings);
 
   const freeShippingThreshold = settings?.freeShippingMinRm
     ? parseFloat(settings.freeShippingMinRm)
@@ -32,6 +40,7 @@ export default async function CheckoutPage() {
           shippingEnabled={Boolean(settings?.shippingEnabled)}
           flatShippingFeeRm={flatShippingFeeRm}
           freeShippingThreshold={freeShippingThreshold}
+          settings={rawSettings}
         />
       </main>
 

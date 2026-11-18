@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Product, ProductVersion } from "@/db/schema";
@@ -26,9 +26,12 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Package,
   Layers,
   Loader2,
+  Search,
+  X,
 } from "lucide-react";
 
 interface ProductWithVersions extends Product {
@@ -39,9 +42,14 @@ interface ProductsManagerProps {
   initialProducts: ProductWithVersions[];
 }
 
+const ADMIN_ITEMS_PER_PAGE = 20;
+
 export function ProductsManager({ initialProducts }: ProductsManagerProps) {
   const [productsList, setProductsList] = useState(initialProducts);
   const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMode, setFilterMode] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Standalone Version Modal (for quick single version edit from accordion)
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
@@ -50,6 +58,46 @@ export function ProductsManager({ initialProducts }: ProductsManagerProps) {
     version?: Partial<ProductVersion>;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const filteredProducts = useMemo(() => {
+    return productsList.filter((product) => {
+      if (filterMode === "Pre-Order" && !product.isPreOrder) return false;
+      if (filterMode === "Draft" && product.isPublished) return false;
+      if (
+        filterMode !== "All" &&
+        filterMode !== "Pre-Order" &&
+        filterMode !== "Draft" &&
+        product.category.toLowerCase() !== filterMode.toLowerCase()
+      ) {
+        return false;
+      }
+
+      if (searchQuery.trim()) {
+        const rawCorpus = `${product.name} ${product.groupArtist || ""} ${product.category} ${product.slug} ${product.versions.map((v) => `${v.versionName} ${v.sku}`).join(" ")}`.toLowerCase();
+        const cleanCorpus = rawCorpus.replace(/[^a-z0-9]/g, "");
+        const terms = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        const allMatch = terms.every((term) => {
+          if (rawCorpus.includes(term)) return true;
+          const cleanTerm = term.replace(/[^a-z0-9]/g, "");
+          return Boolean(cleanTerm && cleanCorpus.includes(cleanTerm));
+        });
+        if (!allMatch) return false;
+      }
+
+      return true;
+    });
+  }, [productsList, filterMode, searchQuery]);
+
+  const totalFiltered = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (safeCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE;
+    return filteredProducts.slice(start, start + ADMIN_ITEMS_PER_PAGE);
+  }, [filteredProducts, safeCurrentPage]);
+
+  const filterPills = ["All", "Album", "Lightstick", "Pre-Order", "Draft"];
 
   const handleDeleteProduct = async (id: number) => {
     if (!confirm("Are you sure you want to delete this product and all its versions?")) return;
@@ -153,18 +201,90 @@ export function ProductsManager({ initialProducts }: ProductsManagerProps) {
         </Link>
       </div>
 
+      {/* Search & Category Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-white p-4 rounded-2xl border border-border shadow-xs">
+        <div className="relative flex-1 md:max-w-md">
+          <Search className="w-4 h-4 text-plum-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Input
+            type="text"
+            placeholder="Search by product name, artist, SKU, or version..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="pl-10 h-10 bg-background border-border text-xs sm:text-sm rounded-xl"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-plum-muted hover:text-plum"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {filterPills.map((pill) => {
+            const isActive = filterMode === pill;
+            return (
+              <button
+                key={pill}
+                type="button"
+                onClick={() => {
+                  setFilterMode(pill);
+                  setCurrentPage(1);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                  isActive
+                    ? "bg-plum text-white shadow-xs"
+                    : "bg-ivory text-plum hover:bg-blush/40 border border-border"
+                }`}
+              >
+                {pill}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Counter Summary */}
+      <div className="flex items-center justify-between text-xs text-plum-muted px-1">
+        <span>
+          Showing{" "}
+          <strong className="text-plum">
+            {totalFiltered === 0 ? 0 : (safeCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE + 1}–
+            {Math.min(safeCurrentPage * ADMIN_ITEMS_PER_PAGE, totalFiltered)}
+          </strong>{" "}
+          of <strong className="text-plum">{totalFiltered}</strong> matching products
+        </span>
+        {totalPages > 1 && (
+          <span>
+            Page {safeCurrentPage} of {totalPages}
+          </span>
+        )}
+      </div>
+
       {/* Product List */}
       <div className="space-y-4">
-        {productsList.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-2xl border border-border text-plum-muted space-y-3">
             <Package className="w-10 h-10 mx-auto opacity-50 text-plum" />
-            <p className="font-heading font-bold text-plum text-lg uppercase">No Products Listed Yet</p>
+            <p className="font-heading font-bold text-plum text-lg uppercase">No Products Matched</p>
             <p className="text-xs text-plum-muted max-w-sm mx-auto">
-              Add your first K-Pop merchandise item with guided version setup.
+              Try adjusting your search query or switching category filters.
             </p>
           </div>
         ) : (
-          productsList.map((product) => {
+          paginatedProducts.map((product) => {
             const isExpanded = expandedProductId === product.id;
             const totalStock = product.versions.reduce((s, v) => s + v.stock, 0);
 
@@ -338,6 +458,48 @@ export function ProductsManager({ initialProducts }: ProductsManagerProps) {
           })
         )}
       </div>
+
+      {/* Admin Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border">
+          <p className="text-xs text-plum-muted font-medium">
+            Page <strong className="text-plum">{safeCurrentPage}</strong> of{" "}
+            <strong className="text-plum">{totalPages}</strong>
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safeCurrentPage <= 1}
+              onClick={() => {
+                setCurrentPage((p) => Math.max(1, p - 1));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="h-9 px-3 rounded-xl text-xs font-semibold text-plum border-border"
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Prev
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => {
+                setCurrentPage((p) => Math.min(totalPages, p + 1));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="h-9 px-3 rounded-xl text-xs font-semibold text-plum border-border"
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modal Dialog: Quick Individual Version Edit */}
       <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>

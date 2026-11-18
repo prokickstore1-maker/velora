@@ -221,11 +221,13 @@ export function ProductDetailClient({ product, settings }: ProductDetailClientPr
                 </span>
               ) : isOpenPreOrder ? (
                 <span className="text-xs sm:text-sm font-semibold text-emerald-600">
-                  Pre Order (Open PO)
+                  Pre-Order
                 </span>
               ) : product.isPreOrder ? (
                 <span className="text-xs sm:text-sm font-semibold text-emerald-600">
-                  Pre Order ({effectiveStock} available)
+                  {effectiveStock > 0 && effectiveStock <= 3
+                    ? `Pre-Order (Only ${effectiveStock} slots left)`
+                    : "Pre-Order"}
                 </span>
               ) : (
                 <span className="text-xs sm:text-sm font-semibold text-emerald-600">
@@ -385,8 +387,16 @@ export function ProductDetailClient({ product, settings }: ProductDetailClientPr
                   ? "Pre-Order Closed"
                   : isSelectedSoldOut
                   ? "Out of Stock"
+                  : product.isPreOrder
+                  ? `Pre-Order Now — RM ${(
+                      (activePromo.hasDiscount
+                        ? activePromo.discountedPrice
+                        : parseFloat(selectedVersion?.priceRm || "0")) * quantity
+                    ).toFixed(2)}`
                   : `Add to Cart — RM ${(
-                      parseFloat(selectedVersion?.priceRm || "0") * quantity
+                      (activePromo.hasDiscount
+                        ? activePromo.discountedPrice
+                        : parseFloat(selectedVersion?.priceRm || "0")) * quantity
                     ).toFixed(2)}`}
               </span>
             </Button>
@@ -419,7 +429,12 @@ export function ProductDetailClient({ product, settings }: ProductDetailClientPr
             <span className="font-heading font-extrabold text-base sm:text-lg text-plum whitespace-nowrap block leading-tight mt-0.5">
               RM{" "}
               {selectedVersion
-                ? (parseFloat(selectedVersion.priceRm) * (isPurchaseBlocked ? 1 : quantity)).toFixed(2)
+                ? (
+                    (activePromo.hasDiscount
+                      ? activePromo.discountedPrice
+                      : parseFloat(selectedVersion.priceRm)) *
+                    (isPurchaseBlocked ? 1 : quantity)
+                  ).toFixed(2)
                 : "0.00"}
             </span>
           </div>
@@ -436,6 +451,8 @@ export function ProductDetailClient({ product, settings }: ProductDetailClientPr
                 ? "Closed"
                 : isSelectedSoldOut
                 ? "Out of Stock"
+                : product.isPreOrder
+                ? "Pre-Order Now"
                 : "Add to Cart"}
             </span>
           </Button>

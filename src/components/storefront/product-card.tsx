@@ -5,8 +5,9 @@ import Link from "next/link";
 import type { Product, ProductVersion, StoreSettings } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Layers } from "lucide-react";
 import { calculateEffectivePrice } from "@/lib/promo";
+import { isDeadlinePassed } from "@/lib/date";
 
 interface ProductWithVersions extends Product {
   versions: ProductVersion[];
@@ -21,9 +22,10 @@ interface ProductCardProps {
 export function ProductCard({ product, settings, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
 
-  const isPreOrder = Boolean((product as { isPreOrder?: boolean }).isPreOrder);
+  const isPreOrder = Boolean(product.isPreOrder);
+  const deadlinePassed = Boolean(isPreOrder && isDeadlinePassed(product.preOrderDeadline));
   const isOpenPreOrder =
-    isPreOrder && (product as { preOrderQuotaMode?: string }).preOrderQuotaMode === "open";
+    isPreOrder && !deadlinePassed && product.preOrderQuotaMode === "open";
 
   // Prevent stock inflation from linked bundles: count physical non-bundle versions
   const nonBundleVersions = product.versions.filter((v) => !v.isBundle);
@@ -32,6 +34,8 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
 
   // Open pre-orders are never sold out even if initial stock is 0
   const isSoldOut = !isOpenPreOrder && totalPhysicalStock <= 0;
+  const isPurchaseBlocked = deadlinePassed || isSoldOut;
+  const hasMultipleVersions = product.versions.length > 1;
 
   // Pick first available version with stock, or fallback to first version
   const defaultVersion =
@@ -67,7 +71,10 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
 
   let statusText = "In Stock";
   let statusColor = "text-emerald-600";
-  if (isSoldOut) {
+  if (deadlinePassed) {
+    statusText = "Pre-Order Closed";
+    statusColor = "text-[#9b1c48]";
+  } else if (isSoldOut) {
     statusText = "Out of Stock";
     statusColor = "text-[#9b1c48]";
   } else if (isPreOrder) {
@@ -79,7 +86,7 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
     e.preventDefault();
     e.stopPropagation();
 
-    if (!defaultVersion || isSoldOut) return;
+    if (!defaultVersion || isPurchaseBlocked) return;
 
     const unitPrice = defaultPromo?.discountedPrice ?? parseFloat(defaultVersion.priceRm);
 
@@ -91,7 +98,7 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
       versionName: defaultVersion.versionName,
       priceRm: unitPrice.toFixed(2),
       imageUrl: defaultVersion.imageUrl || product.primaryImageUrl,
-      maxStock: defaultVersion.stock,
+      maxStock: isOpenPreOrder ? 99 : defaultVersion.stock,
       sku: defaultVersion.sku,
     });
   };
@@ -144,17 +151,33 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
             </span>
           </div>
 
-          {!isSoldOut && defaultVersion && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleQuickAdd}
-              aria-label={`Add ${product.name} to cart`}
-              className="h-7 w-7 sm:h-8 sm:w-auto sm:px-2.5 bg-plum text-white hover:bg-plum-hover rounded-lg text-xs font-semibold shrink-0 p-0 cursor-pointer"
-            >
-              <ShoppingBag className="w-3.5 h-3.5 sm:mr-1" />
-              <span className="hidden sm:inline">Add</span>
-            </Button>
+          {!isPurchaseBlocked && defaultVersion && (
+            hasMultipleVersions ? (
+              <Button
+                asChild
+                size="sm"
+                className="h-7 w-7 sm:h-8 sm:w-auto sm:px-2.5 bg-plum text-white hover:bg-plum-hover rounded-lg text-xs font-semibold shrink-0 p-0 cursor-pointer"
+              >
+                <Link
+                  href={`/products/${product.slug}`}
+                  aria-label={`Select version for ${product.name}`}
+                >
+                  <Layers className="w-3.5 h-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Select</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleQuickAdd}
+                aria-label={`Add ${product.name} to cart`}
+                className="h-7 w-7 sm:h-8 sm:w-auto sm:px-2.5 bg-plum text-white hover:bg-plum-hover rounded-lg text-xs font-semibold shrink-0 p-0 cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5 sm:mr-1" />
+                <span className="hidden sm:inline">Add</span>
+              </Button>
+            )
           )}
         </div>
       </div>

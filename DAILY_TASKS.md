@@ -3,6 +3,185 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Integrasi Upload Rekening Harian & DuitNow QR via Bot Telegram (`@myvelorastore_bot`)**:
+  - Membuat engine Bot Telegram Admin di [src/lib/telegram-bot.ts](file:///d:/project%20web/myvelorastore/src/lib/telegram-bot.ts) dan endpoint Webhook + Sync di [src/app/api/telegram/webhook/route.ts](file:///d:/project%20web/myvelorastore/src/app/api/telegram/webhook/route.ts).
+  - **Upload Foto DuitNow QR Langsung dari Chat Telegram**: Admin cukup mengirim **Foto QR** ke bot Telegram (bisa disertai caption `NamaBank | NoRekening | AtasNama`). Bot otomatis mengunduh foto dari Telegram, mengunggahnya ke S3 IDCloudHost (`velora/brand/...`), menyimpan rekening & QR ke database PostgreSQL, mengaktifkan `paymentEnabled = true`, dan langsung membuka toko hingga pukul 22:00 MYT.
+  - **Perintah Teks & Kontrol Toko via Bot**: Mendukung `/rekening Bank | NoRek | Nama`, `/status` (cek status toko & rekening aktif), `/hapusqr` (hapus gambar QR), `/tutup` (tutup toko manual & hapus rekening sekarang), dan `/help`.
+  - **Dual Mode (Webhook Real-Time + Auto-Sync `getUpdates`)**: Dilengkapi tombol 1-klik *"Aktifkan Webhook Produksi"* & *"Sync Pesan Bot Sekarang"* di [src/components/admin/settings/contact-bot-tab.tsx](file:///d:/project%20web/myvelorastore/src/components/admin/settings/contact-bot-tab.tsx), serta proteksi keamanan yang hanya menerima perintah dari Admin Chat ID terdaftar.
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
+- [x] **Implementasi Logic Rotasi Rekening Harian Malaysia & Auto-Close Jam 22:00 MYT**:
+  - Membuat utilitas zona waktu Malaysia (`Asia/Kuala_Lumpur`, UTC+8) di [src/lib/store-hours.ts](file:///d:/project%20web/myvelorastore/src/lib/store-hours.ts) (`getMalaysiaTimeParts`, `evaluateStorePaymentStatus`, `sanitizePublicPaymentSettings`).
+  - **Auto-Expire Jam 10 Malam (22:00 MYT)**: Setiap pukul 22:00 MYT, nomor rekening bank dan gambar DuitNow QR otomatis dihapus/disembunyikan dari publik (`sanitizePublicPaymentSettings`) disertai *live timer* 30 detik di browser pembeli.
+  - **Wajib Upload Rekening Baru Setiap Pagi**: Meskipun sudah berganti hari (misal pukul 10:00 pagi keesokan harinya), rekening hari kemarin tidak akan muncul kembali sebelum Admin mengunggah/menyimpan rekening atau QR baru pada tanggal hari ini di `/admin/settings`.
+  - **Layar `"STORE IS CLOSED NOW"` + Direct Order via WhatsApp di Checkout**: Saat toko tutup (di atas jam 22:00 MYT atau belum upload rekening hari ini), halaman `/checkout` ([src/components/storefront/checkout-form.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/checkout-form.tsx)) dan halaman pembayaran ([src/components/storefront/payment-client.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/payment-client.tsx)) otomatis menampilkan kartu **"STORE IS CLOSED NOW"** beserta ringkasan keranjang dan tombol hijau **"Order Directly via WhatsApp"** yang memformat seluruh isi keranjang pembeli langsung ke WhatsApp Admin.
+  - **Indikator Status Harian di Admin Settings**: Pada tab *Payment & DuitNow* ([src/components/admin/settings/payment-tab.tsx](file:///d:/project%20web/myvelorastore/src/components/admin/settings/payment-tab.tsx)), form otomatis mengosongkan rekening hari sebelumnya yang sudah kedaluwarsa dan menampilkan jam Malaysia (`MYT`) serta status *Open/Closed*.
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
+- [x] **Perbaikan 5 Logic Penting Storefront, Cart & Admin Panel**:
+  - **1. Multi-Version Select vs Quick Add & Open PO `maxStock` Fix (`product-card.tsx`)**: Produk dengan `> 1` versi (seperti Album multi-versi) kini menampilkan tombol **`Select`** yang mengarahkan ke halaman detail untuk memilih versi, sedangkan produk 1 versi tetap tombol **`Add`** instan. Memperbaiki pengiriman `maxStock: isOpenPreOrder ? 99 : defaultVersion.stock` agar produk Open PO tidak memunculkan error *"Sold out"*.
+  - **2. Validasi `preOrderDeadline` pada Kartu Katalog (`product-card.tsx`)**: Menambahkan pengecekan `isDeadlinePassed(product.preOrderDeadline)` langsung di kartu produk katalog sehingga PO yang sudah tutup otomatis berstatus `Pre-Order Closed` dan tidak bisa di-klik *Add*.
+  - **3. Search, Filter Kategori & Paginasi 20 Produk/Halaman di Admin Panel (`products-manager.tsx`)**: Menambahkan kolom pencarian multi-kata (nama, artis, SKU, versi), filter pil (`All`, `Album`, `Lightstick`, `Pre-Order`, `Draft`), dan paginasi 20 item per halaman di `/admin/products` untuk mengelola 383 produk dengan cepat dan ringan.
+  - **4. Sinkronisasi Harga Promo di Mobile Sticky Bar (`product-detail-client.tsx`)**: Menyelaraskan kalkulasi harga pada *Mobile Sticky Bottom Action Bar* agar menggunakan `activePromo.discountedPrice` saat diskon aktif.
+  - **5. Smart Cross-Category Matching & Dynamic Filter Pills (`catalog-view.tsx` & `category-banners-section.tsx`)**: Mencocokkan sub-kategori *Photobook*, *Merch*, *Fashion*, dan *Stationery* secara cerdas dari judul/versi produk serta menyembunyikan pil filter yang memiliki 0 produk.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Penyelarasan Tampilan & Logic Status Pre-Order vs Ready Stock**:
+  - Menghilangkan label angka fisik `(10 available)` pada produk **Pre-Order** di halaman detail produk ([src/components/storefront/product-detail-client.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/product-detail-client.tsx)) agar pembeli tidak mengira barang PO sudah ada stok fisiknya di gudang.
+  - Untuk Pre-Order, status kini secara tegas berlabel **`Pre-Order`** (atau `Pre-Order (Only X slots left)` hanya saat kuota menipis $\le 3$).
+  - Teks `In Stock (X available)` kini dieksklusifkan hanya untuk barang yang berstatus **Ready Stock** (`isPreOrder = false`).
+  - Menyesuaikan tombol aksi menjadi kontekstual: **`Pre-Order Now`** untuk barang PO, dan **`Add to Cart`** untuk barang Ready Stock.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Penyempurnaan Total Logic Search & Filter Katalog Storefront**:
+  - **Multi-Keyword AND Search (Tokenized)**: Pencarian kini memecah kata kunci (misal *"bts lightstick"* atau *"stray kids album"*) dan memvalidasi setiap kata di seluruh atribut produk (`name`, `groupArtist`, `category`, `description`, `versionName`), menyelesaikan masalah pencarian multi-kata yang sebelumnya menghasilkan 0 produk.
+  - **Fuzzy Normalization**: Mengabaikan tanda baca dan spasi agar pencarian seperti *"gidle"* cocok dengan *"(G)I-DLE"*, *"day 6"* cocok dengan *"DAY6"*, dan *"lightstick"* cocok dengan *"Light Stick"*.
+  - **Pencegahan Keyboard Autocorrect Mobile**: Menambahkan atribut `autoComplete="off"`, `autoCorrect="off"`, dan `spellCheck={false}` pada input pencarian agar keyboard HP tidak merusak nama artis/idol K-Pop.
+  - **Opsi Sort Baru & Proteksi Array Kosong**: Menambahkan opsi abjad *"Alphabetical: A to Z"* dan *"Alphabetical: Z to A"*, serta perlindungan `NaN` pada pengurutan harga.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Implementasi Storefront Catalog Pagination (20 Produk per Halaman)**:
+  - Membatasi render katalog storefront menjadi **20 produk per halaman** (`ITEMS_PER_PAGE = 20`) pada [src/components/storefront/catalog-view.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/catalog-view.tsx) untuk mencegah browser kewalahan saat merender seluruh 383 produk (244 Album + 139 Lightstick).
+  - Menambahkan kontrol navigasi paginasi: tombol *Prev* dan *Next* (`ChevronLeft` & `ChevronRight`), pil nomor halaman pintar dengan ellipsis (`1`, `2`, `3` ... `totalPages`), dan indikator counter produk ("Showing 1–20 of 383 products").
+  - Menjamin touch target minimal 44px (`min-h-[44px] min-w-[44px]`) untuk aksesibilitas dan standar Anti-AI Slop mobile UX.
+  - Menambahkan otomatisasi reset ke halaman 1 saat user mengubah kategori, kata kunci pencarian, filter stok (*In Stock Only*), atau urutan (*Sort by*).
+  - Menambahkan auto smooth-scroll kembali ke bagian atas katalog saat berpindah halaman.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Import 244 Album K-Pop Resmi dari KSENDY (`ksendy.com/collections/albums`)**:
+  - Mengunggah **244 album resmi** lengkap dengan varian versi (*Photobook Ver, Digipack, SMini, Jewel Case, Limited Edition, Set*) ke database PostgreSQL.
+  - Mengunggah seluruh foto sampul resmi beresolusi tinggi (HD) ke Object Storage S3 IDCloudHost (`velora` bucket).
+  - Standarisasi kategori produk terpusat: **244 produk kategori `Album`** dan **139 produk kategori `Lightstick`** (Total **383 produk aktif**).
+  - Seluruh harga versi album dihitung sesuai aturan resmi Myvelora USD ($\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor \rightarrow \text{FLOOR Integer RM}$).
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Import 244 Album K-Pop Resmi dari KSENDY (`ksendy.com/collections/albums`)**:
+  - Mengunggah **244 album resmi** lengkap dengan varian versi (*Photobook Ver, Digipack, SMini, Jewel Case, Limited Edition, Set*) ke database PostgreSQL.
+  - Mengunggah seluruh foto sampul resmi beresolusi tinggi (HD) ke Object Storage S3 IDCloudHost (`velora` bucket).
+  - Standarisasi kategori produk terpusat: **244 produk kategori `Album`** dan **139 produk kategori `Lightstick`** (Total **383 produk aktif**).
+  - Seluruh harga versi album dihitung sesuai aturan resmi Myvelora USD ($\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor \rightarrow \text{FLOOR Integer RM}$).
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Import Seluruh Sisa Light Stick Resmi dari KSENDY (`ksendy.com`)**:
+  - Mengunggah **67 produk light stick resmi tambahan** dari koleksi KSENDY ke database Myvelora Store dan foto Ultra-HD ke IDCloudHost S3 (`velora` bucket).
+  - Termasuk grup-grup legendaris dan generasi baru: **2NE1 (RM 173)**, **MAMAMOO (RM 191)**, **LISA (RM 234)**, **WANNA ONE (RM 187)**, **2PM (RM 197)**, **CNBLUE (RM 182)**, **ZICO (RM 197)**, **QWER (RM 204)**, **N.Flying (RM 196)**, **BIGBANG V.4 (RM 148)**, **KATSEYE (RM 197)**, **WayV (RM 80)**, **YOUNG POSSE (RM 182)**, **CIX (RM 161)**, **EPEX (RM 170)**, **NEXZ (RM 194)**, **KIM JAE JOONG (RM 189)**, **KIM SEJEONG (RM 215)**, **JAY PARK (RM 180)**, **izna (RM 203)**, **82MAJOR (RM 178)**, **BOL4 (RM 204)**, **RESCENE (RM 222)**, **ROY KIM (RM 246)**, **BYEON WOO SEOK (RM 187)**, **HYOLYN (RM 179)**, **MOMOLAND (RM 157)**, **ONEWE (RM 182)**, **D.O. (RM 178)**, dll.
+  - Seluruh harga dihitung sesuai rumus paten Myvelora USD ($\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$).
+  - Total katalog aktif di database PostgreSQL saat ini mencapai **139 produk resmi**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Penyelarasan Katalog & Upgrade Foto Ultra-HD dari KSENDY (`ksendy.com`)**:
+  - **Upgrade 24 Foto Produk Lama ke Ultra-HD**: Mengganti foto produk KSpace yang buram/pecah menjadi foto resmi master Shopify KSENDY beresolusi tinggi (800×800 hingga 1.600×1.600 HD) untuk TWICE, THE BOYZ, CHUU, fromis_9, Stray Kids Ver.2, NewJeans, SEVENTEEN Ver.3, CRAVITY, &TEAM Ver.2, EVAN, ONEUS Ver.2, YENA, Xdinary Heroes, dll. Seluruh foto diunggah ke IDCloudHost S3 (`velora` bucket).
+  - **Penambahan 18 Light Stick Populer Baru dari KSENDY**:
+    1. **IVE - Official Light Stick Ver.2**: $58.99 USD → **RM 192** (ID: 65, Ready Stock)
+    2. **aespa - Official Light Stick Ver.2**: $58.88 USD → **RM 192** (ID: 66, Ready Stock)
+    3. **ITZY - Official Light Stick**: $61.97 USD → **RM 202** (ID: 67, Ready Stock)
+    4. **DAY6 - Official Light Band Ver.3**: $55.99 USD → **RM 183** (ID: 68, Ready Stock)
+    5. **RIIZE - Official Light Stick**: $59.99 USD → **RM 196** (ID: 69, Ready Stock)
+    6. **Red Velvet - Official Light Stick Ver.2**: $56.88 USD → **RM 185** (ID: 70, Ready Stock)
+    7. **MONSTA X - Official Light Stick Ver.3**: $56.72 USD → **RM 185** (ID: 71, Ready Stock)
+    8. **KISS OF LIFE - Official Light Stick**: $54.67 USD → **RM 178** (ID: 72, Pre-Order)
+    9. **ILLIT - Official Light Stick**: $61.67 USD → **RM 201** (ID: 73, Pre-Order)
+    10. **BIGBANG G-DRAGON - Official Light Stick**: $66.56 USD → **RM 217** (ID: 74, Ready Stock)
+    11. **SUPER JUNIOR - Official Light Stick**: $56.50 USD → **RM 184** (ID: 75, Ready Stock)
+    12. **TVXQ! - Official Light Stick**: $55.88 USD → **RM 182** (ID: 76, Ready Stock)
+    13. **NCT 127 - Official Light Stick**: $60.35 USD → **RM 197** (ID: 77, Ready Stock)
+    14. **HIGHLIGHT - Official Light Stick Ver.2**: $54.88 USD → **RM 179** (ID: 78, Ready Stock)
+    15. **WJSN - Official Light Stick Ver.2**: $48.00 USD → **RM 156** (ID: 79, Ready Stock)
+    16. **PLAVE - Official Light Stick**: $65.08 USD → **RM 212** (ID: 80, Pre-Order)
+    17. **INFINITE - Official Light Stick**: $68.99 USD → **RM 225** (ID: 81, Ready Stock)
+    18. **B1A4 - Official Light Stick Ver.3**: $47.66 USD → **RM 155** (ID: 82, Ready Stock)
+  - Seluruh harga dihitung sesuai rumus paten Myvelora USD ($\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$).
+  - Total katalog aktif di database PostgreSQL saat ini: **72 produk resmi**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Pembersihan & Penggantian Foto Produk Bermasalah (Batch 4)**:
+  - Mengganti 8 foto produk yang sebelumnya salah/kurang rapi dari scrape KSpace:
+    1. **WONHO (ID: 51)**: Sebelumnya menampilkan 3 album 'LOVE SYNONYM' → diganti foto resmi clean cutout Light Stick Wonho.
+    2. **EPIK HIGH (ID: 59)**: Sebelumnya lembar manual instruksi tombol Korea berbingkai hitam → diganti foto resmi "Park Kyu Bong" asli.
+    3. **ONEUS Ver.2 (ID: 57)**: Sebelumnya duplikat foto stick VERIVERY → diganti foto resmi ONEUS Ver.2 asli dengan outbox emas.
+    4. **LE SSERAFIM (ID: 42)**: Sebelumnya banner panduan LED gelap dengan teks → diganti foto resmi clean white render FIMBONG.
+    5. **B.I (ID: 58)**: Sebelumnya kartu grafis bertuliskan "BINBONG" → diganti foto resmi cutout clean BINBONG.
+    6. **Billlie (ID: 49)**: Sebelumnya poster teks spec "CONTENTS" → diganti foto resmi clean cutout Billlie lightstick.
+    7. **OnlyOneOf (ID: 47)**: Sebelumnya kartu bertuliskan logo OnlyOneOf besar → diganti foto resmi clean cutout OnlyOneOf lightstick.
+    8. **VERIVERY Ver.3 (ID: 56)**: Foto diperbarui ke versi clean cutout resmi tanpa logo ungu besar di sudut.
+  - Seluruh foto baru diunggah ke S3 (`public-read`, HTTP 200) dan database di-update.
+- [x] **Bulk Upload Batch 4: 23 Produk Resmi Light Stick dari KSPACE (`kspaceproject.com`)**:
+  - Mengunduh foto resmi resolusi tinggi, mengunggah ke IDCloudHost S3 (`velora` bucket, `public-read` ACL), dan memverifikasi status `HTTP 200 OK`.
+  - Menerapkan rumus paten harga **Myvelora Pricing Rules** ($\text{Harga Sumber CZK} \times 0.185028 \times 0.80 \rightarrow \text{FLOOR Integer RM}$):
+    1. **LE SSERAFIM - Official Light Stick**: `1.979 Kč` → **RM 292** (Stok: 10, Pre-Order, ID: 42)
+    2. **TEMPEST - Official Light Stick**: `1.749 Kč` → **RM 258** (Stok: 10, Pre-Order, ID: 43)
+    3. **YENA - Official Light Stick (Ver.1)**: `1.699 Kč` → **RM 251** (Stok: 10, Pre-Order, ID: 44)
+    4. **XDINARY HEROES - Official Light Stick**: `1.749 Kč` → **RM 258** (Stok: 10, Ready Stock, ID: 45)
+    5. **CHUU - Official Light Stick**: `1.749 Kč` → **RM 258** (Stok: 10, Pre-Order, ID: 46)
+    6. **OnlyOneOf - Official Light Stick**: `2.249 Kč` → **RM 332** (Stok: 10, Pre-Order, ID: 47)
+    7. **KANG DANIEL - Official Light Stick Ver.2**: `1.749 Kč` → **RM 258** (Stok: 10, Ready Stock, ID: 48)
+    8. **Billlie - Official Light Stick**: `1.749 Kč` → **RM 258** (Stok: 10, Ready Stock, ID: 49)
+    9. **STRAY KIDS - Official Light Stick Ver.2**: `2.249 Kč` → **RM 332** (Stok: 10, Pre-Order, ID: 50)
+    10. **WONHO - Official Light Stick**: `1.649 Kč` → **RM 244** (Stok: 10, Ready Stock, ID: 51)
+    11. **GOLDEN CHILD - Official Light Stick**: `1.549 Kč` → **RM 229** (Stok: 10, Ready Stock, ID: 52)
+    12. **ROCKET PUNCH - Official Light Stick**: `1.549 Kč` → **RM 229** (Stok: 10, Ready Stock, ID: 53)
+    13. **DRIPPIN - Official Light Stick**: `1.549 Kč` → **RM 229** (Stok: 10, Ready Stock, ID: 54)
+    14. **LEE CHAE YEON - Official Light Stick**: `1.699 Kč` → **RM 251** (Stok: 10, Ready Stock, ID: 55)
+    15. **VERIVERY - Official Light Stick Ver.3**: `1.599 Kč` → **RM 236** (Stok: 10, Ready Stock, ID: 56)
+    16. **ONEUS - Official Light Stick Ver.2**: `1.699 Kč` → **RM 251** (Stok: 10, Ready Stock, ID: 57)
+    17. **B.I - Official Light Stick**: `1.699 Kč` → **RM 251** (Stok: 10, Ready Stock, ID: 58)
+    18. **EPIK HIGH - Official Light Stick**: `1.849 Kč` → **RM 273** (Stok: 10, Pre-Order, ID: 59)
+    19. **GOT7 - Official Light Stick Ver.3**: `1.749 Kč` → **RM 258** (Stok: 10, Pre-Order, ID: 60)
+    20. **8TURN - Official Light Stick**: `1.799 Kč` → **RM 266** (Stok: 10, Ready Stock, ID: 61)
+    21. **ZEROBASEONE - Official Light Stick**: `1.949 Kč` → **RM 288** (Stok: 10, Ready Stock, ID: 62)
+    22. **TXT - Official Light Stick Ver.2**: `1.999 Kč` → **RM 295** (Stok: 10, Pre-Order, ID: 63)
+    23. **EVNNE - Official Light Stick (Ver.1)**: `1.749 Kč` → **RM 258** (Stok: 10, Pre-Order, ID: 64)
+  - Total katalog di database saat ini: **54 produk resmi**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Upload Batch 3: 10 Produk Resmi Light Stick dari KSPACE (`kspaceproject.com`)**:
+  - Mengunduh foto resmi resolusi tinggi, mengunggah ke IDCloudHost S3 (`velora` bucket, `public-read` ACL), dan memverifikasi status `HTTP 200 OK`.
+  - Menerapkan rumus paten harga **Myvelora Pricing Rules** ($\text{Harga Sumber CZK} \times 0.185028 \times 0.80 \rightarrow \text{FLOOR Integer RM}$):
+    1. **The Rose - Official Light Stick**: `1.994 Kč` → **RM 295** (Stok: 10, Pre-Order, ID: 32)
+    2. **ATEEZ - Official Light Stick Ver.2**: `1.709 Kč` → **RM 252** (Stok: 10, Pre-Order, ID: 33)
+    3. **STAYC - Official Light Stick**: `1.699 Kč` → **RM 251** (Stok: 10, Ready Stock, ID: 34)
+    4. **BTS - Official Light Stick (Map of the Soul Special Edition)**: `2.149 Kč` → **RM 318** (Stok: 10, Pre-Order, ID: 35)
+    5. **(G)I-DLE - Official Light Stick Ver.2**: `1.599 Kč` → **RM 236** (Stok: 10, Pre-Order, ID: 36)
+    6. **fromis_9 - Official Light Stick Ver.2**: `1.899 Kč` → **RM 281** (Stok: 10, Ready Stock, ID: 37)
+    7. **NMIXX - Official Light Stick**: `1.749 Kč` → **RM 258** (Stok: 10, Pre-Order, ID: 38)
+    8. **TWICE - CANDYBONG ∞ Official Light Stick**: `1.709 Kč` → **RM 252** (Stok: 10, Pre-Order, ID: 39)
+    9. **NewJeans - Official Light Stick**: `1.849 Kč` → **RM 273** (Stok: 10, Pre-Order, ID: 40)
+    10. **SEVENTEEN - Official Light Stick Ver.3**: `1.614 Kč` → **RM 238** (Stok: 10, Ready Stock, ID: 41)
+  - Total katalog di database saat ini: **31 produk resmi**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Upload Batch 2: 10 Produk Resmi Light Stick dari KSPACE (`kspaceproject.com`)**:
+  - Mengunduh foto resmi produk resolusi tinggi, mengunggah ke IDCloudHost S3 (`velora` bucket, `public-read` ACL), dan memverifikasi seluruh gambar mengembalikan status `HTTP 200 OK`.
+  - Menerapkan rumus paten harga **Myvelora Pricing Rules** ($\text{Harga Sumber CZK} \times 0.185028 \times 0.80 \rightarrow \text{FLOOR Integer RM}$):
+    1. **SHINee - Official Light Stick**: `1.614 Kč` (harga aktif diskon KSpace) → **RM 238** (Stok: 10, Ready Stock, ID: 22). Foto diperbarui menggunakan foto produk bersih (clean cutout white background S3: `shinee-official-light-stick-clean-1794945906468.jpg`).
+    2. **THE BOYZ - Official Light Stick Ver.2**: `1.859 Kč` → **RM 275** (Stok: 10, Ready Stock, ID: 23)
+    3. **AB6IX - Official Light Stick**: `1.699 Kč` → **RM 251** (Stok: 10, Pre-Order, ID: 24)
+    4. **ONF - Official Light Stick**: `1.472 Kč` → **RM 217** (Stok: 10, Pre-Order, ID: 25)
+    5. **CRAVITY - Official Light Stick**: `1.549 Kč` → **RM 229** (Stok: 10, Pre-Order, ID: 26)
+    6. **SF9 - Official Light Stick**: `1.549 Kč` → **RM 229** (Stok: 10, Pre-Order, ID: 27)
+    7. **GIRLS' GENERATION - Official Light Stick**: `1.699 Kč` → **RM 251** (Stok: 10, Pre-Order, ID: 28)
+    8. **LOONA - Official Light Stick**: `1.799 Kč` → **RM 266** (Stok: 10, Pre-Order, ID: 29)
+    9. **OH MY GIRL - Official Light Stick**: `1.299 Kč` → **RM 192** (Stok: 10, Pre-Order, ID: 30)
+    10. **VICTON - Official Light Stick Ver.2**: `1.649 Kč` → **RM 244** (Stok: 10, Pre-Order, ID: 31)
+  - Dua produk tautan (ENHYPEN dan TREASURE) sudah ada sebelumnya di database (ID 11 & 12).
+  - Total katalog di database saat ini: **21 produk resmi**.
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Upload 9 Produk Resmi Light Stick dari KSPACE (`kspaceproject.com`)**:
+  - Mengunduh foto produk resmi resolusi tinggi, mengunggah ke IDCloudHost S3 (`velora` bucket, `public-read` ACL), dan memverifikasi seluruh gambar mengembalikan status `HTTP 200 OK`.
+  - Menerapkan rumus paten harga **Myvelora Pricing Rules** ($\text{Harga Sumber CZK} \times 0.185028 \times 0.80 \rightarrow \text{FLOOR Integer RM}$):
+    1. **EVAN - Official Light Stick**: `2.023 Kč` → **RM 299** (Stok: 10, Ready Stock, ID: 13)
+    2. **ALL(H)OURS - Official Light Stick**: `2.209 Kč` → **RM 326** (Stok: 10, Pre-Order, ID: 14)
+    3. **EVNNE - Official Light Stick Ver.2**: `1.909 Kč` → **RM 282** (Stok: 10, Pre-Order, ID: 15)
+    4. **YENA - Official Light Stick Ver.2**: `2.149 Kč` → **RM 318** (Stok: 10, Pre-Order, ID: 16)
+    5. **HRTZ.WAV - Official Light Stick**: `1.729 Kč` → **RM 255** (Stok: 10, Pre-Order, ID: 17)
+    6. **LNGSHOT - Official Light Stick**: `1.949 Kč` → **RM 288** (Stok: 10, Pre-Order, ID: 18)
+    7. **PARK JI HOON - Official Light Stick Ver.2**: `2.059 Kč` → **RM 304** (Stok: 10, Pre-Order, ID: 19)
+    8. **TAEMIN - Official Light Stick V2**: `2.061 Kč` → **RM 305** (Stok: 10, Pre-Order, ID: 20)
+    9. **&TEAM - Official Light Stick Ver.2**: `1.918 Kč` → **RM 283** (Stok: 10, Ready Stock, ID: 21). Foto diperbarui menggunakan foto resmi Ver.2 globe bulat dengan lambang bulan sabit dan & (S3: `and-team-official-light-stick-ver-2-1794945243270.png`).
+  - Total katalog di database saat ini: **11 produk resmi** (bersama ENHYPEN RM 238 dan TREASURE RM 224).
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
+- [x] **Bulk Upload 9 Produk Resmi Light Stick dari KSPACE (`kspaceproject.com`)**:
+  - Mengunduh foto produk resmi resolusi tinggi, mengunggah ke IDCloudHost S3 (`velora` bucket, `public-read` ACL), dan memverifikasi seluruh gambar mengembalikan status `HTTP 200 OK`.
+  - Menerapkan rumus paten harga **Myvelora Pricing Rules** ($\text{Harga Sumber CZK} \times 0.185028 \times 0.80 \rightarrow \text{FLOOR Integer RM}$):
+    1. **EVAN - Official Light Stick**: `2.023 Kč` → **RM 299** (Stok: 10, Ready Stock, ID: 13)
+    2. **ALL(H)OURS - Official Light Stick**: `2.209 Kč` → **RM 326** (Stok: 10, Pre-Order, ID: 14)
+    3. **EVNNE - Official Light Stick Ver.2**: `1.909 Kč` → **RM 282** (Stok: 10, Pre-Order, ID: 15)
+    4. **YENA - Official Light Stick Ver.2**: `2.149 Kč` → **RM 318** (Stok: 10, Pre-Order, ID: 16)
+    5. **HRTZ.WAV - Official Light Stick**: `1.729 Kč` → **RM 255** (Stok: 10, Pre-Order, ID: 17)
+    6. **LNGSHOT - Official Light Stick**: `1.949 Kč` → **RM 288** (Stok: 10, Pre-Order, ID: 18)
+    7. **PARK JI HOON - Official Light Stick Ver.2**: `2.059 Kč` → **RM 304** (Stok: 10, Pre-Order, ID: 19)
+    8. **TAEMIN - Official Light Stick V2**: `2.061 Kč` → **RM 305** (Stok: 10, Pre-Order, ID: 20)
+    9. **&TEAM - Official Light Stick Ver.2**: `1.918 Kč` → **RM 283** (Stok: 10, Ready Stock, ID: 21). Foto diperbarui menggunakan foto resmi Ver.2 globe bulat dengan lambang bulan sabit dan & (S3: `and-team-official-light-stick-ver-2-1794945243270.png`).
+  - Total katalog di database saat ini: **11 produk resmi** (bersama ENHYPEN RM 238 dan TREASURE RM 224).
+  - Verifikasi: `npx tsc --noEmit` lolos (EXIT=0).
 - [x] **Upload Produk Resmi: TREASURE - Official Light Stick**:
   - Sumber: `https://www.kspaceproject.com/products/treasure-official-light-stick`
   - Mata Uang & Harga Sumber: `1.519 Kč` (CZK)
