@@ -10,7 +10,7 @@
 
 - **Milestone 1 SELESAI & Milestone 2 Storefront + Admin Panel SELESAI**: 
   - Proyek Next.js 16.4.6 terinisialisasi dengan TypeScript, Tailwind CSS v4, ESLint 9, `output: "standalone"` di `next.config.ts`, Google Fonts `Montserrat` dan `Poppins`, 17 komponen Shadcn UI, skema Drizzle ORM PostgreSQL (`src/db/schema.ts` & `src/db/index.ts`), utilitas S3 presigned + Server-side direct S3 upload (`src/lib/s3.ts`), utilitas kompresi Canvas (`src/lib/image-compress.ts`), serta komponen logo resmi `<BrandLogo />`.
-  - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) telah dimigrasikan via `drizzle-kit push` dan di-seed dengan data awal (katalog 10 produk K-pop, pengaturan toko, ulasan WhatsApp).
+  - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) kini memiliki **488 produk aktif** (**244 Album**, **139 Lightstick**, **105 Photobook/Magazine**) dengan seluruh foto sampul resolusi tinggi di S3 IDCloudHost (`velora` bucket).
   - Password admin `Jarwo828@Jr` telah di-hash SHA-256 (`1d3b79f404fad6c61abd28b4afe496185e0458de3c3987fa9d8c36a820712d60`).
   - Bot Telegram `@myvelorastore_bot` terkonfigurasi untuk **hanya** mengirim notifikasi saat pembeli mengunggah bukti bayar (`payment_submitted`).
   - Arsitektur Upload S3 diselaraskan 100% dengan standar proyek produksi IDCloudHost (`PROKICK MY` & `kamera pung lallang`) via Server Action bypass CORS dan otomatis retry tanpa ACL bila Ceph menolak Canned ACL header. Tombol upload QRIS/DuitNow QR dan Brand Logo langsung dari galeri perangkat aktif di admin settings.

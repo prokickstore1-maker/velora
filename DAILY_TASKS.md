@@ -3,6 +3,12 @@
 ## 2026-11-18
 
 ### Target Selesai
+- [x] **Bulk Import 105 Produk Resmi Photobooks & Magazines dari KSENDY (`ksendy.com/collections/phtobooks-magazines`)**:
+  - Mengunggah **105 majalah & photobook resmi K-Pop** (DICON D'FESTA, VOGUE Korea, ELLE, Harper's Bazaar, GQ Korea, W Korea, ARENA HOMME+, dll.) ke database PostgreSQL pada kategori resmi **`Photobook`**.
+  - Mengunggah 100% foto sampul beresolusi tinggi ke Object Storage S3 IDCloudHost (`velora/products/...`) dengan bypass proteksi hotlinking Shopify CDN (`Referer: https://ksendy.com/`).
+  - Menyertakan seluruh varian cover & member selection lengkap dengan kalkulasi harga paten MYR ($\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$).
+  - Total produk aktif di database kini meningkat dari 383 menjadi **488 produk** (**244 Album**, **139 Lightstick**, **105 Photobook**).
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
 - [x] **Commit & Staging Seluruh Fitur**: Berhasil di-stage dan di-commit (`917eb02` - *feat: catalog pagination, smart search, store hours auto-close and telegram bot bank rotation*).
 - [x] **Integrasi Upload Rekening Harian & DuitNow QR via Bot Telegram (`@myvelorastore_bot`)**:
   - Membuat engine Bot Telegram Admin di [src/lib/telegram-bot.ts](file:///d:/project%20web/myvelorastore/src/lib/telegram-bot.ts) dan endpoint Webhook + Sync di [src/app/api/telegram/webhook/route.ts](file:///d:/project%20web/myvelorastore/src/app/api/telegram/webhook/route.ts).
