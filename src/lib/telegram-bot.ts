@@ -46,7 +46,7 @@ export interface TelegramUpdate {
 
 async function sendTelegramReply(token: string, chatId: number | string, text: string) {
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -56,6 +56,20 @@ async function sendTelegramReply(token: string, chatId: number | string, text: s
       }),
       signal: AbortSignal.timeout(8000),
     });
+
+    if (!res.ok) {
+      // Fallback: send clean plain text without parse_mode if Markdown parsing failed
+      const plain = text.replace(/[*_`\[\]()]/g, "");
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: plain,
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+    }
   } catch (err) {
     console.error("Failed to send Telegram reply:", err);
   }

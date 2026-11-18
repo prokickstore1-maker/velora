@@ -1,5 +1,16 @@
 # Daily Tasks — Myvelora Store
 
+## 2026-11-19
+
+### Target Selesai
+- [x] **Pengujian & Verifikasi Koneksi Bot Telegram Admin (`@myvelorastore_bot`)**:
+  - Melakukan uji koneksi API Telegram resmi (`getMe`, `getWebhookInfo`, `getChat`).
+  - Terverifikasi terhubung dengan akun Telegram Admin: **Pr Krick** (`@Gantengbanget77`, Chat ID: `7562689082`).
+  - Mengirimkan pesan ping konfirmasi ke chat Telegram Admin yang merangkum panduan upload QR harian dan perintah bot.
+  - Memperkuat engine pesan [src/lib/telegram-bot.ts](file:///d:/project%20web/myvelorastore/src/lib/telegram-bot.ts) dengan fallback auto plain-text agar tidak pernah gagal kirim saat ada karakter format khusus.
+  - Memproses dan merespons seluruh antrean pesan pending user (`/start`, `/help`) via auto-sync.
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
+
 ## 2026-11-18
 
 ### Target Selesai
