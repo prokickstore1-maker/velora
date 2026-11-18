@@ -3,6 +3,15 @@
 ## 2026-11-19
 
 ### Target Selesai
+- [x] **Bulk Import & Deduping 372 Album Resmi dari K-Pop Music Town LA (`kpopmusictownla.com/collections/all-albums`)**:
+  - Melakukan scraping multi-halaman pada koleksi album K-Pop Music Town LA (22 halaman, total 5.389 album).
+  - Menyaring **512 album rilis aktif/in-stock** dan melakukan pencocokan token & kesamaan judul terhadap 244 album yang sudah ada di database.
+  - **Pencegahan Data Ganda (Anti-Duplication Guard)**: Sebanyak **137 album yang sudah ada di database otomatis DILEWATI (SKIPPED)** (*ITZY Chaeryeong, EXO-KASE, TAEYEON, WENDY, TWICE Nayeon, CORTIS, Ampers&One*, dll.).
+  - Mengimpor **372 album resmi baru** (rilis album & EP dari *ENHYPEN Locket Necklace, TXT Perfect Storm, Wendy Last Light, NewJeans Get Up Box, LE SSERAFIM Hot, BTS Arirang, &TEAM Back to Life, Soojin Rizz, The Boyz, GFriend, Blackpink*, dll.) ke kategori resmi **`Album`**.
+  - Mengunggah 100% foto sampul beresolusi tinggi ke Object Storage S3 IDCloudHost (`velora/products/...`).
+  - Dikonversi menggunakan formula paten MYR: $\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$.
+  - Total katalog aktif toko kini melonjak menjadi **949 produk** (**616 Album**, **228 Lightstick**, **105 Photobook**).
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
 - [x] **Bulk Import & Deduping Light Sticks dari K-Pop Music Town LA (`kpopmusictownla.com/collections/light-sticks`)**:
   - Mengekstrak **191 produk light stick** dari K-Pop Music Town LA.
   - **Pencegahan Data Ganda (Anti-Duplication Guard)**: Melakukan komparasi cerdas terhadap 139 light stick yang sudah ada di database (pencocokan nama artis, tipe versi, dan slug). Sebanyak **102 produk yang sudah ada di database otomatis dilewati (SKIPPED)**.
