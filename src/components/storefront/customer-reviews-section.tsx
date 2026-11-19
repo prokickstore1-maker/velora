@@ -23,21 +23,29 @@ function parseReviewCaption(caption: string | null, index: number) {
   if (!caption) {
     return {
       customerName: FALLBACK_NAMES[index % FALLBACK_NAMES.length],
+      rating: 5,
       content: "",
     };
   }
 
-  const separatorIndex = caption.indexOf(" — ");
-  if (separatorIndex > 0 && separatorIndex < 30) {
+  // Extract rating if present in "[5★]" format
+  const starMatch = caption.match(/\[([1-5])★\]/);
+  const rating = starMatch ? parseInt(starMatch[1], 10) : 5;
+  const cleaned = caption.replace(/\[[1-5]★\]\s*/, "").trim();
+
+  const separatorIndex = cleaned.indexOf(" — ");
+  if (separatorIndex > 0 && separatorIndex < 40) {
     return {
-      customerName: caption.slice(0, separatorIndex).trim(),
-      content: caption.slice(separatorIndex + 3).trim(),
+      customerName: cleaned.slice(0, separatorIndex).trim(),
+      rating,
+      content: cleaned.slice(separatorIndex + 3).trim(),
     };
   }
 
   return {
     customerName: FALLBACK_NAMES[index % FALLBACK_NAMES.length],
-    content: caption,
+    rating,
+    content: cleaned,
   };
 }
 
@@ -96,7 +104,7 @@ export function CustomerReviewsSection({ reviews }: CustomerReviewsSectionProps)
           className="flex gap-3 overflow-x-auto mv-snap-carousel pb-2 -mx-4 px-4 sm:mx-0 sm:px-0"
         >
           {reviews.map((review, idx) => {
-            const { customerName, content } = parseReviewCaption(review.caption, idx);
+            const { customerName, rating, content } = parseReviewCaption(review.caption, idx);
 
             return (
               <figure
@@ -124,12 +132,16 @@ export function CustomerReviewsSection({ reviews }: CustomerReviewsSectionProps)
 
                   <div
                     className="flex items-center gap-0.5 text-pink"
-                    aria-label="Rated 5 out of 5 stars"
+                    aria-label={`Rated ${rating} out of 5 stars`}
                   >
                     {Array.from({ length: 5 }).map((_, starIdx) => (
                       <Star
                         key={starIdx}
-                        className="h-3 w-3 fill-pink text-pink"
+                        className={`h-3 w-3 ${
+                          starIdx < rating
+                            ? "fill-pink text-pink"
+                            : "fill-zinc-200 text-zinc-300"
+                        }`}
                       />
                     ))}
                   </div>

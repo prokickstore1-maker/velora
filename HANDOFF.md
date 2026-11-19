@@ -13,6 +13,7 @@
   - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) kini memiliki **949 produk aktif** (**616 Album**, **228 Lightstick**, **105 Photobook/Magazine**) dengan seluruh foto sampul resolusi tinggi di S3 IDCloudHost (`velora` bucket).
   - Password admin `Jarwo828@Jr` telah di-hash SHA-256 (`1d3b79f404fad6c61abd28b4afe496185e0458de3c3987fa9d8c36a820712d60`).
   - Bot Telegram `@myvelorastore_bot` terverifikasi aktif & terhubung dengan akun Admin `7562689082` (@Gantengbanget77) untuk notifikasi bukti bayar serta upload rekening & QR harian.
+  - Review Management (`/admin/reviews`): Dilengkapi form lengkap terpisah (Customer Name, 1-5 Star Interactive Selector, Review Feedback Quotes, Unboxing Image Upload + Live Thumbnail Preview) serta kapabilitas Edit & Delete dan dynamic star render pada storefront.
   - Arsitektur Upload S3 diselaraskan 100% dengan standar proyek produksi IDCloudHost (`PROKICK MY` & `kamera pung lallang`) via Server Action bypass CORS dan otomatis retry tanpa ACL bila Ceph menolak Canned ACL header. Tombol upload QRIS/DuitNow QR dan Brand Logo langsung dari galeri perangkat aktif di admin settings.
 - **Verifikasi Lolos**: `npx tsc --noEmit` berhasil EXIT=0 dan `npm run lint` bersih tanpa warning/error.
 - **Izin Operasi Dipatuhi**: Sesuai instruksi user, `git push` diserahkan kepada user. Commit lokal telah dirapikan.

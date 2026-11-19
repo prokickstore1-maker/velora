@@ -3,6 +3,15 @@
 ## 2026-11-19
 
 ### Target Selesai
+- [x] **Penyempurnaan Form & Tampilan Review Pelanggan (Bintang, Nama, & Kata-kata Pembeli)**:
+  - Merespons kebutuhan form review pada `/admin/reviews`: menambahkan field eksplisit yang sebelumnya belum terpisah:
+    1. **Customer Name** (Nama pembeli, misal: *Aina R.*, *Chloe T.*, *Syafiqah M.*).
+    2. **Star Rating** (Selector bintang interaktif 1 - 5 bintang ★★★★★ dengan efek hover dan label status).
+    3. **Review / Kata-kata Pembeli** (Textarea multi-baris untuk feedback unboxing, kondisi packaging, dan photocard).
+    4. **Screenshot / Unboxing Image** (Upload foto dari perangkat auto-kompres WebP 9:16 atau input URL + pratinjau thumbnail).
+  - Menambahkan kapabilitas **Edit Review** (ikon pensil pada kartu review) di samping fungsi hapus.
+  - Memperbarui parser review [src/components/storefront/customer-reviews-section.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/customer-reviews-section.tsx) agar merender jumlah bintang secara dinamis (bintang pink terisi vs abu-abu) sesuai rating yang dipilih.
+  - Verifikasi: `npx eslint` dan `npx tsc --noEmit` lolos bersih (EXIT=0).
 - [x] **Bulk Import & Deduping 372 Album Resmi dari K-Pop Music Town LA (`kpopmusictownla.com/collections/all-albums`)**:
   - Melakukan scraping multi-halaman pada koleksi album K-Pop Music Town LA (22 halaman, total 5.389 album).
   - Menyaring **512 album rilis aktif/in-stock** dan melakukan pencocokan token & kesamaan judul terhadap 244 album yang sudah ada di database.
