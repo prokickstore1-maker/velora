@@ -10,6 +10,8 @@ import { FaqSection } from "@/components/storefront/faq-section";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageCircle } from "lucide-react";
 
+export const revalidate = 30;
+
 export default async function HomePage() {
   const [settings, products, reviews] = await Promise.all([
     getPublicStoreSettings(),

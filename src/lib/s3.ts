@@ -45,6 +45,9 @@ export const s3Client = new S3Client({
     secretAccessKey: s3SecretAccessKey,
   },
   forcePathStyle: s3ForcePathStyle,
+  // Ceph / IDCloudHost compatibility: disable automatic CRC32/CRC64 flexible checksums that trigger 400 InvalidArgument
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 export const ALLOWED_MIME_TYPES = [

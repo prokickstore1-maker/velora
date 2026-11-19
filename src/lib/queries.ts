@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { db, hasDatabaseUrl, getOrCreateStoreSettings } from "@/db";
 import { products, productVersions, customerReviews, orders } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, ne } from "drizzle-orm";
 import { MOCK_PRODUCTS, MOCK_REVIEWS, MOCK_STORE_SETTINGS } from "@/db/mock-data";
 
 /**
@@ -114,6 +114,62 @@ export const getPublicReviews = unstable_cache(
   ["public_reviews_list"],
   { tags: ["reviews"], revalidate: 3600 }
 );
+
+/**
+ * Public Recommended Products based on current product's group/artist & category
+ * Prioritizes: 1) Same Artist, 2) Same Category, excluding the current product
+ */
+export async function getRecommendedProducts(currentProduct: {
+  id: number;
+  groupArtist: string | null;
+  category: string;
+}) {
+  if (!hasDatabaseUrl) {
+    const list = MOCK_PRODUCTS.filter((p) => p.id !== currentProduct.id);
+    const artistLower = currentProduct.groupArtist?.trim().toLowerCase();
+    const sameArtist = artistLower
+      ? list.filter((p) => p.groupArtist?.trim().toLowerCase() === artistLower)
+      : [];
+    const sameCategory = list.filter(
+      (p) => p.category === currentProduct.category && !sameArtist.some((a) => a.id === p.id)
+    );
+    return [...sameArtist, ...sameCategory].slice(0, 4) as unknown as Array<
+      typeof products.$inferSelect & { versions: Array<typeof productVersions.$inferSelect> }
+    >;
+  }
+
+  try {
+    const list = await db.query.products.findMany({
+      where: and(
+        eq(products.isPublished, true),
+        ne(products.id, currentProduct.id)
+      ),
+      with: {
+        versions: {
+          where: eq(productVersions.isActive, true),
+          orderBy: [productVersions.sortOrder, productVersions.id],
+        },
+      },
+      orderBy: [desc(products.isNewArrival), desc(products.sortOrder)],
+      limit: 30,
+    });
+
+    const artistLower = currentProduct.groupArtist?.trim().toLowerCase();
+    const sameArtist = artistLower
+      ? list.filter((p) => p.groupArtist?.trim().toLowerCase() === artistLower)
+      : [];
+    const sameCategory = list.filter(
+      (p) => p.category === currentProduct.category && !sameArtist.some((a) => a.id === p.id)
+    );
+    const others = list.filter(
+      (p) => !sameArtist.some((a) => a.id === p.id) && !sameCategory.some((c) => c.id === p.id)
+    );
+
+    return [...sameArtist, ...sameCategory, ...others].slice(0, 4);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Get Order by unique orderCode

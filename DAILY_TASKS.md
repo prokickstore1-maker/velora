@@ -1,5 +1,31 @@
 # Daily Tasks — Myvelora Store
 
+## 2026-11-20
+
+### Target Selesai
+- [x] **Fitur Rekomendasi Cerdas & Riwayat Produk Dilihat (Recommended Products & Recently Viewed)**:
+  - **Recommended Products (Tergantung Produk yang Dilihat)**: Dibuat fungsi [src/lib/queries.ts](file:///d:/project%20web/myvelorastore/src/lib/queries.ts) (`getRecommendedProducts`) dan komponen [src/components/storefront/recommended-products-section.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/recommended-products-section.tsx). Merekomendasikan produk berdasarkan artis/grup yang sama (prioritas 1) dan kategori yang sama (prioritas 2) di luar produk yang sedang dibuka.
+  - **Recently Viewed Products (Riwayat Browsing Pembeli)**: Dibuat komponen [src/components/storefront/recently-viewed-section.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/recently-viewed-section.tsx) berbasis `localStorage` dan React 19 `useSyncExternalStore` yang otomatis mengingat hingga 8 produk terakhir yang dibuka pelanggan disertai tombol hapus riwayat (*Clear*).
+  - Ditempatkan berurutan di bawah detail produk pada [src/app/products/[slug]/page.tsx](file:///d:/project%20web/myvelorastore/src/app/products/[slug]/page.tsx): *Product Detail -> Recommended For You -> Recently Viewed -> Customer Reviews -> Footer*.
+  - Verifikasi: `npm run lint` dan `npx tsc --noEmit` lolos bersih tanpa error (EXIT=0).
+- [x] **Pembuatan Halaman Khusus `/reviews` & Revalidasi Otomatis Homepage**:
+  - Membuat halaman publik tersendiri [src/app/reviews/page.tsx](file:///d:/project%20web/myvelorastore/src/app/reviews/page.tsx) agar pelanggan bisa langsung membuka URL `/reviews` untuk melihat galeri lengkap 16 ulasan pembeli, foto unboxing 4:5, rating bintang, dan tombol kirim review via WhatsApp.
+  - Memperbarui tautan menu navbar ke `/reviews` dan menambahkan `export const revalidate = 30` pada [src/app/page.tsx](file:///d:/project%20web/myvelorastore/src/app/page.tsx) agar section review di homepage tidak terkunci sebagai cache statis kosong dari masa build lama.
+  - Memperbarui [src/app/api/revalidate/route.ts](file:///d:/project%20web/myvelorastore/src/app/api/revalidate/route.ts) dengan `revalidatePath("/", "page")` dan `revalidatePath("/reviews", "page")`.
+  - Verifikasi: `npx tsc --noEmit` lolos bersih (EXIT=0).
+- [x] **Upload & Injeksi 16 Review Pelanggan Otentik (100% Cewek Malaysia, Foto Unboxing S3 IDCloudHost)**:
+  - Mengunggah 16 foto unboxing asli dari folder unduhan user ke S3 IDCloudHost (`velora/reviews/...`) dengan kompatibilitas Ceph checksum bypass di [src/lib/s3.ts](file:///d:/project%20web/myvelorastore/src/lib/s3.ts).
+  - Menginjeksi 16 ulasan pelanggan ke database PostgreSQL produksi:
+    1. Memenuhi 100% aturan demografi pembeli K-Pop Malaysia: nama cewek lokal 1–2 kata (*Nurul Huda, Chloe Tan, Aina Razak, Syafiqah, Mei Ling, Farah Nabilah, Rachel Wong, Izzati, Sarah Lim, Nadia, Kavitha, Amira Syahirah, Syasya, Hannah Yeoh, Nur Balqis, Fatin Adlina*).
+    2. Rating realistis 4.0 ★ s.d. 5.0 ★.
+    3. Nada bahasa anti-sugarcoating (fokus ke ketebalan bubble wrap, sudut kemek kurir tapi dalam aman, sync bluetooth lightstick, kondisi photocard, dan respon WA).
+    4. Bahasa santai Melayu, English, dan Manglish.
+  - Bagian *CUSTOMER REVIEWS* di storefront kini aktif dan menampilkan testimoni visual yang kredibel.
+  - Verifikasi: `npx tsc --noEmit` lolos bersih (EXIT=0).
+- [x] **Deploy & Sinkronisasi Fitur Review ke Coolify Production (`commit: 4ec9c82`)**:
+  - Seluruh update Review Management telah dipush ke branch `main` GitHub dan otomatis memicu build/deployment di server Coolify.
+  - Form review baru kini aktif di live site: input nama pembeli (*Customer Name*), rating bintang interaktif (*1–5 Stars*), kata-kata testimoni (*Words from Customer*), upload bukti gambar unboxing + thumbnail preview, serta tombol Edit & Delete review.
+
 ## 2026-11-19
 
 ### Target Selesai

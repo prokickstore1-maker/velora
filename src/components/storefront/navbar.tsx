@@ -38,7 +38,7 @@ export function Navbar({
 
   const supportLinks = [
     { label: "How to Order", href: "/how-to-order" },
-    { label: "Reviews", href: "/#reviews" },
+    { label: "Reviews", href: "/reviews" },
     { label: "Track Order", href: "/track-order" },
   ];
 

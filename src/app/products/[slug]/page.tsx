@@ -1,8 +1,15 @@
 import { notFound } from "next/navigation";
-import { getProductBySlug, getPublicStoreSettings, getPublicReviews } from "@/lib/queries";
+import {
+  getProductBySlug,
+  getPublicStoreSettings,
+  getPublicReviews,
+  getRecommendedProducts,
+} from "@/lib/queries";
 import { Navbar } from "@/components/storefront/navbar";
 import { Footer } from "@/components/storefront/footer";
 import { ProductDetailClient } from "@/components/storefront/product-detail-client";
+import { RecommendedProductsSection } from "@/components/storefront/recommended-products-section";
+import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { CustomerReviewsSection } from "@/components/storefront/customer-reviews-section";
 
 interface ProductPageProps {
@@ -30,15 +37,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Next.js 16 requirement: await params
   const { slug } = await params;
 
-  const [product, settings, reviews] = await Promise.all([
-    getProductBySlug(slug),
-    getPublicStoreSettings(),
-    getPublicReviews(),
-  ]);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
+
+  const [settings, reviews, recommended] = await Promise.all([
+    getPublicStoreSettings(),
+    getPublicReviews(),
+    getRecommendedProducts({
+      id: product.id,
+      groupArtist: product.groupArtist,
+      category: product.category,
+    }),
+  ]);
 
   const freeShippingThreshold = settings?.freeShippingMinRm
     ? parseFloat(settings.freeShippingMinRm)
@@ -56,6 +69,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <ProductDetailClient product={product} settings={settings} />
       </main>
 
+      {/* Recommended Products based on what the user is currently viewing (Artist / Category) */}
+      <RecommendedProductsSection
+        products={recommended}
+        settings={settings}
+        currentArtist={product.groupArtist}
+        currentCategory={product.category}
+      />
+
+      {/* Recently Viewed Products from user's browsing history */}
+      <RecentlyViewedSection currentProduct={product} />
+
+      {/* Customer Reviews & Social Proof */}
       <CustomerReviewsSection reviews={reviews} />
 
       <Footer
