@@ -3,6 +3,31 @@
 ## 2026-11-21
 
 ### Target Selesai
+- [x] **Generate Laporan Ekspor Excel (`.xlsx`) & PDF (`.pdf`) Katalog Produk BTS**:
+  - Mengekspor seluruh 104 produk BTS aktif dan variannya dari database PostgreSQL produksi.
+  - **File Excel ([Myvelora_BTS_Product_Catalog.xlsx](file:///d:/project%20web/myvelorastore/public/exports/Myvelora_BTS_Product_Catalog.xlsx))**:
+    - *Sheet 1 (BTS Products Master)*: No, ID, Product Name, Category, Artist, Price Range (RM), Min Price, Max Price, Total Stock, Versions Count, Stock Type, Status, dan Image S3 URL lengkap dengan formula currency, auto column width, dan brand header Deep Plum (`#47023B`).
+    - *Sheet 2 (Variants & SKUs)*: Rincian per varian fisik, nama versi, nomor SKU unik, harga per varian, stok fisik, dan status ketersediaan.
+  - **File PDF ([Myvelora_BTS_Product_Catalog.pdf](file:///d:/project%20web/myvelorastore/public/exports/Myvelora_BTS_Product_Catalog.pdf))**:
+    - Dokumen PDF landscape 5 halaman berstandar editorial dengan penomoran halaman otomatis (*Page X of 5*), repeating table header, warna zebra row striping, dan metadata resmi Myvelora Store.
+  - Tersimpan di folder publik `public/exports/` sehingga dapat diakses via web browser maupun file explorer.
+- [x] **Penerapan Foto Grup Resmi (*Official Group Photos*) di Section `Shop by Artist`**:
+  - Mengunduh 16 foto resmi personil lengkap (*OT portraits*) untuk ke-16 idol/grup (*BTS, SEVENTEEN, Stray Kids, NCT, ENHYPEN, TWICE, aespa, TXT, NewJeans, LE SSERAFIM, BLACKPINK, IVE, ATEEZ, RIIZE, (G)I-DLE, ZEROBASEONE*).
+  - Menyimpan fallback lokal beresolusi tinggi di [public/artists/](file:///d:/project%20web/myvelorastore/public/artists/) dan mengunggahnya ke S3 IDCloudHost (`velora/artists/...`).
+  - Membuat pemetaan aset [src/lib/artist-images.ts](file:///d:/project%20web/myvelorastore/src/lib/artist-images.ts) (`ARTIST_GROUP_IMAGES`) dan mengintegrasikannya ke [src/components/storefront/popular-artists-section.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/popular-artists-section.tsx). Lingkaran avatar kartu artis kini menampilkan wajah asli member grup secara estetik & profesional, menggantikan thumbnail sampul album produk.
+  - Verifikasi: `npx tsc --noEmit` (EXIT=0) dan `npm run lint` (EXIT=0).
+- [x] **Import 48 Produk BTS dari KpopMerch (Filter ≥ Rp500.000, Zero Duplicate, Upload S3 IDCloudHost)**:
+  - **Scanning 6 Halaman (123 Handles)**: Memindai seluruh katalog koleksi BTS di `https://kpopmerch.com/collections/bts` dengan penanganan cerdas backoff retry terhadap limitasi IP/Cloudflare Shopify.
+  - **Filter Harga Ketat (≥ Rp500.000)**: 66 produk yang berada di bawah ambang batas Rp500.000 (seperti majalah tipis seharga Rp260k, standee/keychain kecil seharga Rp79k-Rp300k, mini speaker) berhasil disaring dan dilewati.
+  - **Verifikasi Anti-Duplikasi (Zero Duplicate)**: 9 produk yang sudah ada di database 949 produk kita (seperti BTS Official Light Stick Ver 4, Map of the Soul, Dark & Wild, Wings, Proof Compact) berhasil di-skip.
+  - **Eksekusi 48 Produk Baru Valid**:
+    - Seluruh 48 foto produk beresolusi tinggi diunduh dengan header referer dan diunggah langsung ke S3 IDCloudHost bucket `velora/products/...` (memakai penanganan Ceph checksum).
+    - Varian produk dibuat lengkap dengan format SKU unik dinamis: `mv-bts-[productId]-v[idx]-[timestamp]` untuk mencegah tabrakan unique index.
+    - Rumus konversi paten harga: $\lfloor \text{USD} \times 4.086165 \times 0.80 \rfloor$ diterapkan pada seluruh varian produk (kisaran RM 88 s.d. RM 969).
+    - Taksonomi kategori distandardisasi (`Album`, `Fashion`, `Photobook`, `Merchandise`, `Stationery`).
+    - Copywriting deskripsi dibersihkan sesuai standar Anti-AI Slop (100% Bahasa Inggris, bebas klaim palsu dan tanpa ornamen dekorasi sembarangan).
+  - **Hasil Database**: Total produk katalog Myvelora naik dari 949 menjadi **997 produk**, produk BTS naik dari 56 menjadi **104 produk**, dan total varian aktif menjadi **2.247 varian**.
+  - **Verifikasi**: `npx tsc --noEmit` (EXIT=0) dan `npm run lint` (EXIT=0).
 - [x] **Audit & Remediate Standar Kualitas Anti-AI Slop (`no-ai-slop` + `DESIGN.md` Guardrails) (`commit: 763efdc`)**:
   - **1. Kontras Teks WCAG AA (`Text Contrast Rule`)**: Mengganti seluruh teks kecil (`10px–11px`) yang memakai `text-pink` (`#FA3890`, rasio kontras 3.22:1–3.38:1 di atas White/Ivory) menjadi `text-plum-muted` (`#7A4970`, rasio kontras 5.9:1 PASS AA) atau `text-plum` (`#47023B`, rasio kontras 14.8:1 PASS AAA) pada `popular-artists-section.tsx`, `recommended-products-section.tsx`, `recently-viewed-section.tsx`, `catalog-view.tsx`, `navbar.tsx`, `wishlist-client.tsx`, `reviews/page.tsx`, dan `not-found.tsx`.
   - **2. Kepatuhan Guardrail Brand (`No Decorative Malaysia` & `No Unconfirmed Claims`)**: Menghapus klaim keaslian hardcoded (`"official"`, `"authentic"`) dan ornamen `"across Malaysia"` dari `reviews/page.tsx`, `recommended-products-section.tsx`, `wishlist/page.tsx`, `shop/page.tsx`, dan `page.tsx`.

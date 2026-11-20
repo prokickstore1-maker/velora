@@ -10,7 +10,9 @@
 
 - **Milestone 1 SELESAI & Milestone 2 Storefront + Admin Panel SELESAI**: 
   - Proyek Next.js 16.4.6 terinisialisasi dengan TypeScript, Tailwind CSS v4, ESLint 9, `output: "standalone"` di `next.config.ts`, Google Fonts `Montserrat` dan `Poppins`, 17 komponen Shadcn UI, skema Drizzle ORM PostgreSQL (`src/db/schema.ts` & `src/db/index.ts`), utilitas S3 presigned + Server-side direct S3 upload (`src/lib/s3.ts`), utilitas kompresi Canvas (`src/lib/image-compress.ts`), serta komponen logo resmi `<BrandLogo />`.
-  - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) kini memiliki **949 produk aktif** (**616 Album**, **228 Lightstick**, **105 Photobook/Magazine**) dengan seluruh foto sampul resolusi tinggi di S3 IDCloudHost (`velora` bucket).
+  - Database PostgreSQL 18 di Coolify (`157.10.253.46:5432`) kini memiliki **997 produk aktif** (termasuk **104 produk BTS**) dengan **2.247 versi varian**, seluruh foto sampul resolusi tinggi di S3 IDCloudHost (`velora` bucket).
+  - Foto grup resmi (*OT portraits*) untuk ke-16 grup di section `Shop by Artist` telah aktif di S3 IDCloudHost (`velora/artists/...`) dan `public/artists/`.
+  - Bulk Import KpopMerch BTS (2026-11-21): 48 produk BTS baru berhasil dimasukkan (filter ketat ≥ Rp500.000, zero duplicate terverifikasi, harga MYR paten, foto Ultra-HD di S3 IDCloudHost).
   - Password admin `Jarwo828@Jr` telah di-hash SHA-256 (`1d3b79f404fad6c61abd28b4afe496185e0458de3c3987fa9d8c36a820712d60`).
   - Bot Telegram `@myvelorastore_bot` terverifikasi aktif & terhubung dengan akun Admin `7562689082` (@Gantengbanget77) untuk notifikasi bukti bayar serta upload rekening & QR harian.
   - Review Management (`/admin/reviews`): Dilengkapi form lengkap terpisah (Customer Name, 1-5 Star Interactive Selector, Review Feedback Quotes, Unboxing Image Upload + Live Thumbnail Preview) serta kapabilitas Edit & Delete dan dynamic star render pada storefront.

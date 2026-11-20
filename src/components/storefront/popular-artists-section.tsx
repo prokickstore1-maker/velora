@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product, ProductVersion } from "@/db/schema";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { ARTIST_GROUP_IMAGES } from "@/lib/artist-images";
 
 interface ProductWithVersions extends Product {
   versions: ProductVersion[];
@@ -69,11 +70,12 @@ export function PopularArtistsSection({ products }: PopularArtistsSectionProps) 
 
   const artistCards: ArtistCardData[] = FEATURED_ARTIST_TARGETS.map((target) => {
     const matched = products.filter((p) => matchesArtistTarget(p, target.label));
-    const withImage = matched.find((p) => p.primaryImageUrl && !p.primaryImageUrl.startsWith("data:")) || matched[0];
+    const curatedImage = ARTIST_GROUP_IMAGES[target.label];
+    const fallbackProduct = matched.find((p) => p.primaryImageUrl && !p.primaryImageUrl.startsWith("data:")) || matched[0];
     return {
       name: target.label,
       count: matched.length,
-      imageUrl: withImage?.primaryImageUrl || "",
+      imageUrl: curatedImage || fallbackProduct?.primaryImageUrl || "",
     };
   })
     .filter((a) => a.count > 0 && a.imageUrl)

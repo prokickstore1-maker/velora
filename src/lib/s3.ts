@@ -60,7 +60,7 @@ export const ALLOWED_MIME_TYPES = [
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number];
 
 interface GetPresignedUrlOptions {
-  folder: "products" | "receipts" | "reviews" | "brand";
+  folder: "products" | "receipts" | "reviews" | "brand" | "artists";
   filename: string;
   contentType: AllowedMimeType;
 }
@@ -109,7 +109,7 @@ export async function uploadBufferToS3({
   contentType,
 }: {
   buffer: Buffer;
-  folder: "products" | "receipts" | "reviews" | "brand";
+  folder: "products" | "receipts" | "reviews" | "brand" | "artists";
   filename: string;
   contentType: AllowedMimeType;
 }): Promise<{ fileKey: string; publicUrl: string }> {
