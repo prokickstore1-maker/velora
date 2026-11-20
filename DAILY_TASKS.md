@@ -1,5 +1,25 @@
 # Daily Tasks — Myvelora Store
 
+## 2026-11-21
+
+### Target Selesai
+- [x] **Audit & Remediate Standar Kualitas Anti-AI Slop (`no-ai-slop` + `DESIGN.md` Guardrails) (`commit: 763efdc`)**:
+  - **1. Kontras Teks WCAG AA (`Text Contrast Rule`)**: Mengganti seluruh teks kecil (`10px–11px`) yang memakai `text-pink` (`#FA3890`, rasio kontras 3.22:1–3.38:1 di atas White/Ivory) menjadi `text-plum-muted` (`#7A4970`, rasio kontras 5.9:1 PASS AA) atau `text-plum` (`#47023B`, rasio kontras 14.8:1 PASS AAA) pada `popular-artists-section.tsx`, `recommended-products-section.tsx`, `recently-viewed-section.tsx`, `catalog-view.tsx`, `navbar.tsx`, `wishlist-client.tsx`, `reviews/page.tsx`, dan `not-found.tsx`.
+  - **2. Kepatuhan Guardrail Brand (`No Decorative Malaysia` & `No Unconfirmed Claims`)**: Menghapus klaim keaslian hardcoded (`"official"`, `"authentic"`) dan ornamen `"across Malaysia"` dari `reviews/page.tsx`, `recommended-products-section.tsx`, `wishlist/page.tsx`, `shop/page.tsx`, dan `page.tsx`.
+  - **3. Copywriting Anti-AI Slop**: Memangkas frasa klise/puffery (*"Curated Catalog"*, *"Fandom Collection"*, *"Selected for you"*, *"Keep track of your favorite..."*) menjadi copy langsung dan tajam (*"Catalog"*, *"Artists"*, *"Buyer Feedback"*, *"Saved Items"*).
+  - **4. Ergonomi Mobile-First & Anti-Misclick (`DESIGN.md` §6.A & §6.B)**:
+    - Mengubah `min-h-screen` menjadi `min-h-dvh` di `reviews/page.tsx`.
+    - Mengubah wrapper kartu `RecentlyViewedSection` dari full-card `<Link>` menjadi `<div className="group...">` dengan `<Link>` semantik pada foto `4:5` dan judul produk agar tidak terpencet tidak sengaja saat scroll vertikal di layar HP.
+    - Menaikkan tinggi `<SelectTrigger>` Artist & Sort di `catalog-view.tsx` menjadi `h-12 text-base sm:text-xs` untuk mencegah iOS Safari auto-zoom, serta memperbesar touch target pill filter artis (`min-h-10`) dan tombol Heart Wishlist (`w-9 h-9`).
+  - Verifikasi: `npx tsc --noEmit` dan `npx eslint` lolos bersih (EXIT=0).
+- [x] **Implementasi 5 Fitur Utama Storefront & Optimasi Mobile-First (`Shop by Artist`, `Quick Search`, `Wishlist`, `Smart Category Matching`, `404 & SEO`)**:
+  - **1. Shop by Artist / Group**: Membuat komponen [src/components/storefront/popular-artists-section.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/popular-artists-section.tsx) (horizontal swipe snap carousel di mobile & 6-column grid di desktop) untuk grup populer (*BTS, SEVENTEEN, Stray Kids, NCT, ENHYPEN, TWICE, aespa, TXT, NewJeans, LE SSERAFIM, BLACKPINK, IVE, ATEEZ, RIIZE, (G)I-DLE, ZEROBASEONE*) lengkap dengan filter pill & dropdown artis di [src/components/storefront/catalog-view.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/catalog-view.tsx) dan parameter URL `?artist=` di [src/app/shop/page.tsx](file:///d:/project%20web/myvelorastore/src/app/shop/page.tsx).
+  - **2. Quick Search Modal di Navbar Atas**: Menambahkan ikon kaca pembesar (*Search*) di pojok Navbar (mobile & desktop) pada [src/components/storefront/navbar.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/navbar.tsx) yang membuka dialog pencarian cepat (`?q=`) disertai tombol pintas *Popular Artists* dan *Quick Categories*.
+  - **3. Sistem Wishlist / Simpan Produk Favorit (`useWishlist`)**: Membuat state reaktif `localStorage` berbasis React 19 `useSyncExternalStore` di [src/lib/wishlist.ts](file:///d:/project%20web/myvelorastore/src/lib/wishlist.ts), tombol hati (*Heart*) di setiap kartu produk [src/components/storefront/product-card.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/product-card.tsx), sinkronisasi di halaman detail produk [src/components/storefront/product-detail-client.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/product-detail-client.tsx), badge counter di Navbar, serta halaman khusus `/wishlist` ([src/app/wishlist/page.tsx](file:///d:/project%20web/myvelorastore/src/app/wishlist/page.tsx) & [src/components/storefront/wishlist-client.tsx](file:///d:/project%20web/myvelorastore/src/components/storefront/wishlist-client.tsx)).
+  - **4. Smart Matching Kategori `Merchandise`, `Fashion`, dan `Stationery`**: Memperluas pencocokan korpus produk di `CatalogView` sehingga ketiga kategori memiliki pilihan produk relevan dari 949 item katalog.
+  - **5. Custom 404 Page & SEO Sitemap**: Membuat [src/app/not-found.tsx](file:///d:/project%20web/myvelorastore/src/app/not-found.tsx), [src/app/sitemap.ts](file:///d:/project%20web/myvelorastore/src/app/sitemap.ts), dan [src/app/robots.ts](file:///d:/project%20web/myvelorastore/src/app/robots.ts).
+  - Verifikasi: `npx tsc --noEmit` dan `npm run lint` lolos bersih (EXIT=0).
+
 ## 2026-11-20
 
 ### Target Selesai

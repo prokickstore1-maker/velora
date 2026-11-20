@@ -5,7 +5,8 @@ import Link from "next/link";
 import type { Product, ProductVersion, StoreSettings } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import { ShoppingBag, Layers } from "lucide-react";
+import { useWishlist } from "@/lib/wishlist";
+import { ShoppingBag, Layers, Heart } from "lucide-react";
 import { calculateEffectivePrice } from "@/lib/promo";
 import { isDeadlinePassed } from "@/lib/date";
 
@@ -21,6 +22,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product, settings, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
+  const { isWishlisted, toggle } = useWishlist();
+  const liked = isWishlisted(product.id);
 
   const isPreOrder = Boolean(product.isPreOrder);
   const deadlinePassed = Boolean(isPreOrder && isDeadlinePassed(product.preOrderDeadline));
@@ -106,25 +109,46 @@ export function ProductCard({ product, settings, priority = false }: ProductCard
   return (
     <div className="group bg-white rounded-xl border border-border/80 p-2 sm:p-3 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden relative">
       {/* Square Image Box matching reference */}
-      <Link
-        href={`/products/${product.slug}`}
-        className="relative aspect-square w-full rounded-lg bg-neutral-100 overflow-hidden block select-none mb-2"
-      >
-        {hasDiscount && defaultPromo && defaultPromo.hasDiscount && (
-          <span className="absolute top-2 left-2 z-10 bg-pink text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider animate-pulse">
-            {defaultPromo.badgeText}
-          </span>
-        )}
-        <Image
-          src={product.primaryImageUrl}
-          alt={product.name}
-          fill
-          unoptimized={product.primaryImageUrl.startsWith("data:")}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          priority={priority}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-      </Link>
+      <div className="relative aspect-square w-full rounded-lg bg-neutral-100 overflow-hidden mb-2">
+        <Link
+          href={`/products/${product.slug}`}
+          className="relative w-full h-full block select-none"
+        >
+          {hasDiscount && defaultPromo && defaultPromo.hasDiscount && (
+            <span className="absolute top-2 left-2 z-10 bg-pink text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider animate-pulse">
+              {defaultPromo.badgeText}
+            </span>
+          )}
+          <Image
+            src={product.primaryImageUrl}
+            alt={product.name}
+            fill
+            unoptimized={product.primaryImageUrl.startsWith("data:")}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </Link>
+
+        {/* Wishlist Toggle Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggle(product.id);
+          }}
+          aria-label={liked ? "Remove from wishlist" : "Save to wishlist"}
+          title={liked ? "Remove from Wishlist" : "Save to Wishlist"}
+          className={`absolute top-1.5 right-1.5 z-10 w-9 h-9 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors shadow-xs cursor-pointer ${
+            liked
+              ? "bg-plum text-white"
+              : "bg-white/95 backdrop-blur-xs text-plum hover:bg-white"
+          }`}
+        >
+          <Heart className={`w-4 h-4 ${liked ? "fill-pink text-pink" : ""}`} />
+        </button>
+      </div>
 
       {/* Info: Title (1-line), Price, and Stock Status */}
       <div className="space-y-1 min-w-0">

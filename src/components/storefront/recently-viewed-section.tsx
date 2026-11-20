@@ -127,7 +127,7 @@ export function RecentlyViewedSection({ currentProduct }: RecentlyViewedSectionP
           <button
             type="button"
             onClick={handleClearHistory}
-            className="text-xs text-plum-muted hover:text-plum flex items-center gap-1 transition-colors px-2 py-1 rounded-md hover:bg-blush/30 cursor-pointer"
+            className="min-h-10 px-3 text-xs text-plum-muted hover:text-plum flex items-center gap-1 transition-colors rounded-xl hover:bg-blush/30 cursor-pointer"
             title="Clear recently viewed history"
           >
             <X className="w-3.5 h-3.5" />
@@ -138,14 +138,16 @@ export function RecentlyViewedSection({ currentProduct }: RecentlyViewedSectionP
         {/* Recently Viewed Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {items.map((item) => (
-            <Link
+            <div
               key={item.id}
-              href={`/products/${item.slug}`}
-              className="group bg-white rounded-2xl border border-border/80 overflow-hidden shadow-xs hover:border-pink/40 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between"
+              className="group bg-white rounded-2xl border border-border/80 overflow-hidden shadow-xs hover:border-pink/40 transition-all duration-200 flex flex-col justify-between"
             >
               <div>
                 {/* 4:5 Ratio Image */}
-                <div className="relative aspect-[4/5] w-full bg-zinc-100 overflow-hidden">
+                <Link
+                  href={`/products/${item.slug}`}
+                  className="relative aspect-[4/5] w-full bg-zinc-100 overflow-hidden block"
+                >
                   {item.primaryImageUrl ? (
                     <Image
                       src={item.primaryImageUrl}
@@ -164,29 +166,31 @@ export function RecentlyViewedSection({ currentProduct }: RecentlyViewedSectionP
                   <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-xs text-plum text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shadow-2xs">
                     {item.category}
                   </div>
-                </div>
+                </Link>
 
                 {/* Info */}
                 <div className="p-3 space-y-1">
                   {item.groupArtist && (
-                    <p className="text-[10px] font-bold tracking-wider text-pink uppercase truncate">
+                    <p className="text-[10px] font-bold tracking-wider text-plum-muted uppercase truncate">
                       {item.groupArtist}
                     </p>
                   )}
-                  <h3 className="text-xs font-semibold text-plum line-clamp-2 leading-snug group-hover:text-pink transition-colors">
-                    {item.name}
-                  </h3>
+                  <Link href={`/products/${item.slug}`} className="block">
+                    <h3 className="text-xs font-semibold text-plum line-clamp-2 leading-snug group-hover:text-plum-hover transition-colors">
+                      {item.name}
+                    </h3>
+                  </Link>
                 </div>
               </div>
 
               {/* Price Footer */}
               <div className="p-3 pt-0 flex items-center justify-between border-t border-border/40 mt-1">
                 <span className="text-[10px] text-plum-muted">Price</span>
-                <span className="text-xs font-bold text-plum font-mono">
+                <span className="text-xs sm:text-sm font-bold text-plum font-mono">
                   RM {item.minPriceRm}
                 </span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

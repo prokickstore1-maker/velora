@@ -5,6 +5,8 @@ import { Footer } from "@/components/storefront/footer";
 import { ProductCard } from "@/components/storefront/product-card";
 import { HeroBannerCarousel, type HeroSlide } from "@/components/storefront/hero-banner-carousel";
 import { CategoryBannersSection } from "@/components/storefront/category-banners-section";
+import { PopularArtistsSection } from "@/components/storefront/popular-artists-section";
+import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { CustomerReviewsSection } from "@/components/storefront/customer-reviews-section";
 import { FaqSection } from "@/components/storefront/faq-section";
 import { Button } from "@/components/ui/button";
@@ -49,7 +51,7 @@ export default async function HomePage() {
       imageUrl: bannerImageUrl,
       badge: bannerBadge,
       title: bannerTitle,
-      subtitle: bannerProduct?.groupArtist ? `${bannerProduct.groupArtist} • Official Release` : "Browse albums by version, lightsticks, and photocard sets",
+      subtitle: bannerProduct?.groupArtist ? `${bannerProduct.groupArtist} • ${bannerProduct.category}` : "Browse albums by version, lightsticks, and photocard sets",
       href: bannerHref,
     },
     ...newArrivals
@@ -88,6 +90,9 @@ export default async function HomePage() {
 
       {/* "SHOP NOW" Visual Category Collage Banners */}
       <CategoryBannersSection products={products} />
+
+      {/* "SHOP BY ARTIST" Mobile Snap Carousel & Desktop Grid */}
+      <PopularArtistsSection products={products} />
 
       {/* 1. PRE ORDER Section */}
       {preOrderItems.length > 0 && (
@@ -160,6 +165,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Recently Viewed History for Returning Shoppers */}
+      <RecentlyViewedSection />
 
       {/* Customer Reviews Section */}
       <CustomerReviewsSection reviews={reviews} />

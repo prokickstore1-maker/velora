@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product, ProductVersion, StoreSettings } from "@/db/schema";
 import { useCart } from "@/context/cart-context";
+import { useWishlist } from "@/lib/wishlist";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -64,28 +65,12 @@ export function ProductDetailClient({ product, settings }: ProductDetailClientPr
   );
   const [quantity, setQuantity] = useState(1);
 
-  // Task 5: Clean Wishlist state persisted in localStorage (Brand Guardrail: No fake numbers)
-  const [liked, setLiked] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      return localStorage.getItem(`mv_like_${product.id}`) === "1";
-    } catch {
-      return false;
-    }
-  });
+  // Task 5: Reactive Wishlist state persisted in localStorage
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const liked = isWishlisted(product.id);
 
   const handleToggleLike = () => {
-    const next = !liked;
-    setLiked(next);
-    try {
-      if (next) {
-        localStorage.setItem(`mv_like_${product.id}`, "1");
-      } else {
-        localStorage.removeItem(`mv_like_${product.id}`);
-      }
-    } catch {
-      // Ignore storage errors
-    }
+    toggleWishlist(product.id);
   };
 
   const activeImage = selectedVersion?.imageUrl || product.primaryImageUrl;

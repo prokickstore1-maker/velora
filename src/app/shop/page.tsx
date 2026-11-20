@@ -10,7 +10,7 @@ interface ShopPageProps {
 
 export const metadata = {
   title: "Shop All K-Pop Merch | Myvelora Store",
-  description: "Browse ready stock K-Pop albums, photocards, and official merchandise.",
+  description: "Browse K-Pop albums, lightsticks, photobooks, and merchandise.",
 };
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
@@ -19,6 +19,14 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const rawCategory =
     typeof resolvedSearchParams.category === "string"
       ? resolvedSearchParams.category.trim()
+      : undefined;
+  const rawArtist =
+    typeof resolvedSearchParams.artist === "string"
+      ? resolvedSearchParams.artist.trim()
+      : undefined;
+  const rawSearchQuery =
+    typeof resolvedSearchParams.q === "string"
+      ? resolvedSearchParams.q.trim()
       : undefined;
 
   const [settings, products] = await Promise.all([
@@ -74,7 +82,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         {/* Page Title */}
         <div className="mb-8 space-y-2">
           <span className="text-xs font-bold tracking-widest text-plum-muted uppercase">
-            Curated Catalog
+            Catalog
           </span>
           <h1 className="mv-heading-italic text-3xl sm:text-5xl text-plum">
             EXPLORE MERCHANDISE
@@ -89,6 +97,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           initialProducts={products}
           categories={categories}
           initialCategory={initialCategory}
+          initialArtist={rawArtist}
+          initialSearchQuery={rawSearchQuery}
           settings={settings}
         />
       </main>

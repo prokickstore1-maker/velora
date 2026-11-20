@@ -33,7 +33,7 @@ export function RecommendedProductsSection({
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-pink uppercase mb-1">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-plum-muted uppercase mb-1">
               <Sparkles className="w-3 h-3 text-pink" />
               <span>You May Also Like</span>
             </span>
@@ -42,8 +42,8 @@ export function RecommendedProductsSection({
             </h2>
             <p className="text-xs text-plum-muted mt-0.5">
               {currentArtist
-                ? `More official releases from ${currentArtist} and popular ${currentCategory || "K-Pop"} items`
-                : `Similar official ${currentCategory || "K-Pop"} merchandise selected for you`}
+                ? `More from ${currentArtist} and ${currentCategory || "related"} items`
+                : `Related ${currentCategory || "K-Pop"} releases`}
             </p>
           </div>
 

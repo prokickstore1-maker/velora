@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 export const revalidate = 30;
 
 export const metadata: Metadata = {
-  title: "Customer Reviews & Unboxing Proof — Myvelora Store",
-  description: "Read authentic customer reviews, ratings, and unboxing feedback from verified buyers across Malaysia.",
+  title: "Customer Reviews | Myvelora Store",
+  description: "Unboxing photos and delivery feedback from verified buyers.",
 };
 
 const FALLBACK_NAMES = [
@@ -61,7 +61,7 @@ export default async function ReviewsPage() {
   ]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-ivory">
+    <div className="min-h-dvh flex flex-col bg-ivory">
       <Navbar
         brandLogoUrl={settings?.brandLogoUrl}
         freeShippingThreshold={settings?.freeShippingMinRm ? parseFloat(settings.freeShippingMinRm) : null}
@@ -82,14 +82,14 @@ export default async function ReviewsPage() {
 
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-border/80">
               <div>
-                <span className="text-[11px] font-bold tracking-widest text-pink uppercase block mb-1">
-                  Verified Buyer Feedback
+                <span className="text-[11px] font-bold tracking-widest text-plum-muted uppercase block mb-1">
+                  Buyer Feedback
                 </span>
                 <h1 className="mv-heading-italic text-2xl sm:text-4xl text-plum">
                   CUSTOMER REVIEWS ({reviews.length})
                 </h1>
                 <p className="text-xs sm:text-sm text-plum-muted mt-1 max-w-xl">
-                  Real unboxing photos and delivery feedback from K-Pop merchandise collectors across Malaysia.
+                  Unboxing photos and delivery feedback from buyers.
                 </p>
               </div>
 
